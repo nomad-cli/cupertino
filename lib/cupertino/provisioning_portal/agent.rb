@@ -38,6 +38,29 @@ module Cupertino
         devices
       end
 
+      def add_devices(*devices)
+        return if devices.empty?
+
+        get("https://developer.apple.com/ios/manage/devices/upload.action")
+
+        begin
+          file = Tempfile.new(['devices', '.txt'])
+          file.write("deviceIdentifier\tdeviceName")
+          devices.each do |device|
+            file.write("\n#{device.udid}\t#{device.name}")
+          end
+          file.rewind
+
+          if form = page.form_with(:name => 'saveupload')
+            upload = form.file_uploads.first
+            upload.file_name = file.path
+            form.submit
+          end
+        ensure
+          file.close!
+        end
+      end
+
       private
 
       def login!

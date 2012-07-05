@@ -21,13 +21,13 @@ $ ios devices:remove "iPad 1"
 
 ## Commands
 
+- `devices:add`
 - `devices:list`
 
 ### To Be Implemented
 
 #### Devices
 
-- `devices:add`
 - `devices:remove`
 
 #### Certificates

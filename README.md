@@ -8,6 +8,10 @@ This project is starting with the iOS Provisioning Portal, and may later expand 
 ## Usage
 
 ```sh
+$ gem install cupertino
+```
+
+```sh
 $ ios devices:list
 
 Mattt Thompson's iPad     abcdef0123456789...

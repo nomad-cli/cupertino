@@ -1,0 +1,20 @@
+#!/usr/bin/env ruby
+
+require 'commander/import'
+
+$:.push File.expand_path("../../lib", __FILE__)
+
+require 'cupertino'
+
+HighLine.track_eof = false # Fix for built-in Ruby
+
+program :version, Cupertino::VERSION
+program :description, 'A command-line interface for the iOS Provisioning Portal'
+
+program :help, 'Author', 'Mattt Thompson <m@mattt.me>'
+program :help, 'Website', 'https://github.com/mattt'
+program :help_formatter, :compact
+
+default_command :help
+
+require 'cupertino/provisioning_portal'

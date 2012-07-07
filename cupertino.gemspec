@@ -19,6 +19,7 @@ Gem::Specification.new do |s|
   s.add_dependency "terminal-table", "~> 1.4.5"
   s.add_dependency "term-ansicolor", "~> 1.0.7"
   s.add_dependency "mechanize", "~> 2.5.1"
+  s.add_dependency "netrc", "~> 0.7.2"
 
   s.files         = Dir["./**/*"].reject { |file| file =~ /\.\/(bin|log|pkg|script|spec|test|vendor)/ }
   s.test_files    = `git ls-files -- {test,spec,features}/*`.split("\n")

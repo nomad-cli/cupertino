@@ -13,7 +13,7 @@ command :'devices:list' do |c|
         t << [device.name, device.udid]
       end
     end
-    
+
     puts table
   end
 end

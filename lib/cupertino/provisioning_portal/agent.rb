@@ -1,4 +1,5 @@
 require 'mechanize'
+require 'netrc'
 
 module Cupertino
   module ProvisioningPortal
@@ -8,6 +9,8 @@ module Cupertino
       def initialize
         super
         self.user_agent_alias = 'Mac Safari'
+
+        @username, @password = Netrc.read[::Cupertino::HOSTNAME]
       end
 
       def get(uri, parameters = [], referer = nil, headers = {})

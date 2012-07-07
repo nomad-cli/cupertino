@@ -1,10 +1,13 @@
 command :'profiles:list' do |c|
-  c.syntax = 'ios profiles:list'
-  c.summary = 'Lists the Provisioning Profiles in the Provisioning Portal'
+  c.syntax = 'ios profiles:list [development|distribution]'
+  c.summary = 'Lists the Provisioning Profiles'
   c.description = ''
 
   c.action do |args, options|
-    profiles = agent.list_profiles
+    type = args.first.downcase.to_sym rescue nil
+    profiles = agent.list_profiles(type ||= :development)
+
+    say_warning "No #{type} provisioning profiles found." and abort if profiles.empty?
 
     table = Terminal::Table.new do |t|
       t << ["Profile", "App ID", "Status"]

@@ -25,6 +25,30 @@ module Cupertino
         end
       end
 
+      def list_certificates(type = :development)
+        url = case type
+              when :development
+                "https://developer.apple.com/ios/manage/certificates/team/index.action"
+              when :distribution
+                "https://developer.apple.com/ios/manage/certificates/team/distribute.action"
+              else
+                raise ArgumentError, "Certificate type must be :development or :distribution"
+              end
+
+        get(url)
+
+        certificates = []
+        page.parser.xpath('//div[@class="nt_multi"]/table/tbody/tr').each do |row|
+          certificate = Certificate.new
+          certificate.name = row.at_xpath('td[@class="name"]//p/text()').to_s.strip rescue nil
+          certificate.provisioning_profiles = row.at_xpath('td[@class="profiles"]/text()').to_s.strip.split(/\n+/) rescue []
+          certificate.expiration_date = row.at_xpath('td[@class="date"]/text()').to_s.strip rescue nil
+          certificate.status = row.at_xpath('td[@class="status"]/text()').to_s.strip rescue nil
+          certificates << certificate
+        end
+        certificates
+      end
+
       def list_devices
         get("https://developer.apple.com/ios/manage/devices/index.action")
 
@@ -61,7 +85,7 @@ module Cupertino
         end
       end
 
-      def list_profiles(type = :development)        
+      def list_profiles(type = :development)
         url = case type
               when :development
                 "https://developer.apple.com/ios/manage/provisioningprofiles/index.action"
@@ -70,7 +94,7 @@ module Cupertino
               else
                 raise ArgumentError, "Provisioning profile type must be :development or :distribution"
               end
-        
+
         get(url)
 
         profiles = []

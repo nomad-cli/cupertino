@@ -108,6 +108,27 @@ module Cupertino
         profiles
       end
 
+      def list_app_ids
+        get ("https://developer.apple.com/ios/manage/bundles/index.action")
+
+        app_ids = []
+        page.parser.xpath('//div[@class="nt_multi"]/table/tbody/tr').each do |row|
+          app_id = AppID.new
+          app_id.bundle_seed_id = row.at_xpath('td[@class="name"]/strong/text()').to_s.strip rescue nil
+          app_id.description = row.at_xpath('td[@class="name"]/text()').to_s.strip rescue nil
+
+          keys = row.xpath('td[@class="name"]/p/text()').collect(&:to_s).collect(&:strip)
+          app_id.development_properties, app_id.distribution_properties = row.xpath('td')[1..2].collect do |td|
+            values = td.xpath('p//text()').collect(&:to_s).collect(&:strip).reject{|text| text.empty?}
+            keys.zip(values)
+            keys.zip(values)
+          end
+
+          app_ids << app_id
+        end
+        app_ids
+      end
+
       private
 
       def login!

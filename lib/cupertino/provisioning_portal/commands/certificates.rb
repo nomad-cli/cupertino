@@ -8,7 +8,6 @@ command :'certificates:list' do |c|
     certificates = agent.list_certificates(type ||= :development)
 
     say_warning "No #{type} certificates found." and abort if certificates.empty?
-    Struct.new(:name, :provisioning_profiles, :expiration_date, :status)
 
     table = Terminal::Table.new do |t|
       t << ["Name", "Provisioning Profiles", "Expiration Date", "Status"]

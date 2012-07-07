@@ -6,3 +6,4 @@ $:.push File.expand_path('../', __FILE__)
 require 'commands/certificates'
 require 'commands/devices'
 require 'commands/profiles'
+require 'commands/app_ids'

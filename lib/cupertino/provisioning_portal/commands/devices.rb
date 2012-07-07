@@ -6,10 +6,15 @@ command :'devices:list' do |c|
   c.action do |args, options|
     devices = agent.list_devices
 
-    say_ok "Devices:"
-    devices.each do |device|
-      log device.name, device.udid
+    table = Terminal::Table.new do |t|
+      t << ["Device Name", "Device Identifier"]
+      t.add_separator
+      devices.each do |device|
+        t << [device.name, device.udid]
+      end
     end
+    
+    puts table
   end
 end
 

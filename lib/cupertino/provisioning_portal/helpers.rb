@@ -3,6 +3,10 @@ module Commander::UI
   alias :pw :password
 end
 
+class String
+  include Term::ANSIColor
+end
+
 module Cupertino
   module ProvisioningPortal
     module Helpers

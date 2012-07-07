@@ -31,8 +31,8 @@ module Cupertino
         devices = []
         page.parser.xpath('//fieldset[@id="fs-0"]/table/tbody/tr').each do |row|
           device = Device.new
-          device.name = row.at_xpath('td[@class="name"]/span/text()')
-          device.udid = row.at_xpath('td[@class="id"]/text()')
+          device.name = row.at_xpath('td[@class="name"]/span/text()').to_s.strip rescue nil
+          device.udid = row.at_xpath('td[@class="id"]/text()').to_s.strip rescue nil
           devices << device
         end
         devices
@@ -59,6 +59,29 @@ module Cupertino
         ensure
           file.close!
         end
+      end
+
+      def list_profiles(type = :development)        
+        url = case type
+              when :development
+                "https://developer.apple.com/ios/manage/provisioningprofiles/index.action"
+              when :distribution
+                  "https://developer.apple.com/ios/manage/provisioningprofiles/viewDistributionProfiles.action"
+              else
+                raise ArgumentError, "Provisioning profile type must be :development or :distribution"
+              end
+        
+        get(url)
+
+        profiles = []
+        page.parser.xpath('//fieldset[@id="fs-0"]/table/tbody/tr').each do |row|
+          profile = ProvisioningProfile.new
+          profile.name = row.at_xpath('td[@class="profile"]/text()').to_s.strip rescue nil
+          profile.app_id = row.at_xpath('td[@class="appid"]/text()').to_s.strip rescue nil
+          profile.status = row.at_xpath('td[@class="statusXcode"]/text()').to_s.strip rescue nil
+          profiles << profile
+        end
+        profiles
       end
 
       private

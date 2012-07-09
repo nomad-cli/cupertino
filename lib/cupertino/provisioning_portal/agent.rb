@@ -62,6 +62,15 @@ module Cupertino
           device.udid = row.at_xpath('td[@class="id"]/text()').to_s.strip rescue nil
           devices << device
         end
+        
+        
+        if message = page.parser.at_xpath('//p[@class="devicesannounce"]/strong/text()').to_s.strip rescue nil
+          number_of_devices_available = message.scan(/\d{1,3}/).first.to_i
+          number_of_devices_available.times do
+            devices << nil
+          end
+        end
+        
         devices
       end
 
@@ -112,7 +121,7 @@ module Cupertino
       end
 
       def list_app_ids
-        get ("https://developer.apple.com/ios/manage/bundles/index.action")
+        get("https://developer.apple.com/ios/manage/bundles/index.action")
 
         app_ids = []
         page.parser.xpath('//div[@class="nt_multi"]/table/tbody/tr').each do |row|

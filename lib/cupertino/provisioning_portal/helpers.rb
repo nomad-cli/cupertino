@@ -32,6 +32,10 @@ module Cupertino
 
         @agent
       end
+      
+      def pluralize(n, singular, plural = nil)
+        n.to_i == 1 ? "1 #{singular}" : "#{n} #{plural || singular + 's'}"
+      end
     end
   end
 end

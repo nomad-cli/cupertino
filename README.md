@@ -26,6 +26,8 @@ _Credentials are saved in `.netrc`. You will not be prompted for your username o
 ```sh
 $ ios devices:list
 
++------------------------------+---------------------------------------+
+|       Listing 2 devices. You can register 98 additional devices.     |
 +---------------------------+------------------------------------------+
 | Device Name               | Device Identifier                        |
 +---------------------------+------------------------------------------+

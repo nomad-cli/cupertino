@@ -10,7 +10,7 @@ Gem::Specification.new do |s|
   s.version     = Cupertino::VERSION
   s.platform    = Gem::Platform::RUBY
   s.summary     = "Cupertino"
-  s.description = "Mechanize the Apple Developer Center"
+  s.description = "A command-line interface for the iOS Provisioning Portal"
 
   s.add_development_dependency "rspec", "~> 0.6.1"
   s.add_development_dependency "rake",  "~> 0.9.2"

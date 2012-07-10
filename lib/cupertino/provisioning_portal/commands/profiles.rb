@@ -5,7 +5,7 @@ command :'profiles:list' do |c|
 
   c.action do |args, options|
     type = args.first.downcase.to_sym rescue nil
-    profiles = agent.list_profiles(type ||= :development)
+    profiles = try{agent.list_profiles(type ||= :development)}
 
     say_warning "No #{type} provisioning profiles found." and abort if profiles.empty?
 

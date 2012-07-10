@@ -4,7 +4,7 @@ command :'devices:list' do |c|
   c.description = ''
 
   c.action do |args, options|
-    devices = agent.list_devices
+    devices = try{agent.list_devices}
 
     number_of_devices = devices.compact.length
     number_of_additional_devices = devices.length - number_of_devices

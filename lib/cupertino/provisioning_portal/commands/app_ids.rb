@@ -10,7 +10,7 @@ command :'app_ids:list' do |c|
   c.description = ''
 
   c.action do |args, options|
-    app_ids = agent.list_app_ids
+    app_ids = try{agent.list_app_ids}
 
     title = "Legend: #{COLORS_BY_PROPERTY_VALUES.collect{|k, v| k.send(v)}.join(', ')}"
     table = Terminal::Table.new :title => title do |t|

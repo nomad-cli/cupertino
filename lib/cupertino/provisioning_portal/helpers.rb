@@ -36,6 +36,16 @@ module Cupertino
       def pluralize(n, singular, plural = nil)
         n.to_i == 1 ? "1 #{singular}" : "#{n} #{plural || singular + 's'}"
       end
+      
+      def try
+        return unless block_given?
+
+        begin
+          yield
+        rescue UnsuccessfulAuthenticationError
+          say_error "Could not authenticate with Apple Developer Center. Check that your username & password are correct, and that your membership is valid and all pending Terms of Service & agreements are accepted. If this problem continues, try logging into https://developer.apple.com/membercenter/ from a browser to see what's going on." and abort
+        end
+      end
     end
   end
 end

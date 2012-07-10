@@ -26,6 +26,8 @@ module Cupertino
             return page
           end
         end
+
+        raise UnsuccessfulAuthenticationError
       end
 
       def list_certificates(type = :development)
@@ -62,15 +64,15 @@ module Cupertino
           device.udid = row.at_xpath('td[@class="id"]/text()').to_s.strip rescue nil
           devices << device
         end
-        
-        
+
+
         if message = page.parser.at_xpath('//p[@class="devicesannounce"]/strong/text()').to_s.strip rescue nil
           number_of_devices_available = message.scan(/\d{1,3}/).first.to_i
           number_of_devices_available.times do
             devices << nil
           end
         end
-        
+
         devices
       end
 

@@ -5,7 +5,7 @@ command :'certificates:list' do |c|
 
   c.action do |args, options|
     type = args.first.downcase.to_sym rescue nil
-    certificates = agent.list_certificates(type ||= :development)
+    certificates = try{agent.list_certificates(type ||= :development)}
 
     say_warning "No #{type} certificates found." and abort if certificates.empty?
 

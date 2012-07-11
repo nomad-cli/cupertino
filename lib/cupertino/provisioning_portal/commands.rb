@@ -1,11 +1,9 @@
 include Cupertino::ProvisioningPortal
 include Cupertino::ProvisioningPortal::Helpers
 
-$:.push File.expand_path('../', __FILE__)
-
-require 'commands/certificates'
-require 'commands/devices'
-require 'commands/profiles'
-require 'commands/app_ids'
-require 'commands/login'
-require 'commands/logout'
+require 'cupertino/provisioning_portal/commands/certificates'
+require 'cupertino/provisioning_portal/commands/devices'
+require 'cupertino/provisioning_portal/commands/profiles'
+require 'cupertino/provisioning_portal/commands/app_ids'
+require 'cupertino/provisioning_portal/commands/login'
+require 'cupertino/provisioning_portal/commands/logout'

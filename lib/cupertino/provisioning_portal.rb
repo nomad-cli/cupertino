@@ -11,8 +11,6 @@ module Cupertino
   end
 end
 
-$:.push File.expand_path('../', __FILE__)
-
-require 'provisioning_portal/helpers'
-require 'provisioning_portal/agent'
-require 'provisioning_portal/commands'
+require 'cupertino/provisioning_portal/helpers'
+require 'cupertino/provisioning_portal/agent'
+require 'cupertino/provisioning_portal/commands'

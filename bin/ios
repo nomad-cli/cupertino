@@ -5,8 +5,6 @@ require 'terminal-table'
 require 'term/ansicolor'
 require 'netrc'
 
-$:.push File.expand_path("../../lib", __FILE__)
-
 require 'cupertino'
 
 HighLine.track_eof = false # Fix for built-in Ruby

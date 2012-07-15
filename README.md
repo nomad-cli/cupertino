@@ -57,7 +57,13 @@ $ ios profiles:list
 $ ios profiles:manage:devices
 ```
 
-_Opens an editor with a list of devices, each of which can be commented or uncommented to turn them off or on for that provisioning profile._
+_Opens an editor with a list of devices, each of which can be commented / uncommented to turn them off / on for that provisioning profile._
+
+```
+# Comment / Uncomment Devices to Turn Off / On for Provisioning Profile
+Johnny Appleseed iPad 0123456789012345678901234567890123abcdef
+# Johnny Appleseed iPhone abcdef0123456789012345678901234567890123
+```
 
 ### App IDs
 

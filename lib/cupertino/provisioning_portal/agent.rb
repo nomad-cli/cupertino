@@ -10,12 +10,14 @@ module Cupertino
         super
         self.user_agent_alias = 'Mac Safari'
 
-        @username, @password = Netrc.read[::Cupertino::HOSTNAME]
+        @username, @password = Netrc.read[Cupertino::HOSTNAME]
       end
 
       def get(uri, parameters = [], referer = nil, headers = {})
         3.times do
           super(uri, parameters, referer, headers)
+
+          return page unless page.respond_to?(:title)
 
           case page.title
           when %r{Sign in with your Apple ID}
@@ -46,12 +48,32 @@ module Cupertino
         page.parser.xpath('//div[@class="nt_multi"]/table/tbody/tr').each do |row|
           certificate = Certificate.new
           certificate.name = row.at_xpath('td[@class="name"]//p/text()').to_s.strip rescue nil
+          certificate.type = type
           certificate.provisioning_profiles = row.at_xpath('td[@class="profiles"]/text()').to_s.strip.split(/\n+/) rescue []
           certificate.expiration_date = row.at_xpath('td[@class="date"]/text()').to_s.strip rescue nil
           certificate.status = row.at_xpath('td[@class="status"]/text()').to_s.strip rescue nil
           certificates << certificate
         end
         certificates
+      end
+
+      def download_certificate(certificate)
+        list_certificates(certificate.type)
+
+        page.parser.xpath('//div[@class="nt_multi"]/table/tbody/tr').each do |row|
+          name = row.at_xpath('td[@class="name"]//p/text()').to_s.strip rescue nil
+          
+          if name == certificate.name
+            download_url = row.at_xpath('td[@class="last"]/a')['href'].to_s.strip rescue nil
+
+            self.pluggable_parser.default = Mechanize::Download
+            download = get(::File.join("https://#{Cupertino::HOSTNAME}", download_url))
+            download.save
+            return download.filename
+          end
+        end
+
+        return nil
       end
 
       def list_devices
@@ -64,7 +86,6 @@ module Cupertino
           device.udid = row.at_xpath('td[@class="id"]/text()').to_s.strip rescue nil
           devices << device
         end
-
 
         if message = page.parser.at_xpath('//p[@class="devicesannounce"]/strong/text()').to_s.strip rescue nil
           number_of_devices_available = message.scan(/\d{1,3}/).first.to_i

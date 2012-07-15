@@ -29,3 +29,23 @@ command :'certificates:list' do |c|
 end
 
 alias_command :certificates, :'certificates:list'
+
+command :'certificates:download' do |c|
+  c.syntax = 'ios certificates:download [development|distribution]'
+  c.summary = 'Downloads the Certificates'
+  c.description = ''
+  
+  c.action do |args, options|
+    type = args.first.downcase.to_sym rescue nil
+    certificates = try{agent.list_certificates(type ||= :development)}
+
+    say_warning "No #{type} certificates found." and abort if certificates.empty?
+
+    certificate = choose "Select a certificate to download:", *certificates
+    if filename = agent.download_certificate(certificate)
+      say_ok "Successfully downloaded: '#{filename}'"
+    else
+      say_error "Could not download certificate"
+    end
+  end
+end

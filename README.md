@@ -96,8 +96,7 @@ _Crossed out commands are not yet implemented_
 - ~~`profiles:edit`~~
 
 - `certificates:list [development|distribution]`
-- ~~`certificates:add [development|distribution]`~~
-- ~~`certificates:download CERTIFICATE_NAME`~~
+- `certificates:download CERTIFICATE_NAME`
 - ~~`certificates:revoke CERTIFICATE_NAME`~~
 
 - `app_ids:list`

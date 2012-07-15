@@ -51,6 +51,8 @@ $ ios profiles:list
 +----------------------------------+--------------+---------+
 ```
 
+---
+
 ```sh
 $ ios profiles:manage:devices
 ```
@@ -103,7 +105,7 @@ _Crossed out commands are not yet implemented_
 - ~~`profiles:edit`~~
 
 - `certificates:list [development|distribution]`
-- `certificates:download CERTIFICATE_NAME`
+- `certificates:download`
 - ~~`certificates:revoke CERTIFICATE_NAME`~~
 
 - `app_ids:list`

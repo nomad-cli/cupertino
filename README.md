@@ -51,6 +51,12 @@ $ ios profiles:list
 +----------------------------------+--------------+---------+
 ```
 
+```sh
+$ ios profiles:manage:devices
+```
+
+_Opens an editor with a list of devices, each of which can be commented or uncommented to turn them off or on for that provisioning profile._
+
 ### App IDs
 
 ```sh
@@ -92,6 +98,7 @@ _Crossed out commands are not yet implemented_
 - ~~`devices:remove`~~
 
 - `profiles:list`
+- `profiles:manage:devices`
 - ~~`profiles:add`~~
 - ~~`profiles:edit`~~
 

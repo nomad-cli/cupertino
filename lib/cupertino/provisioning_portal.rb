@@ -4,7 +4,7 @@ module Cupertino
   module ProvisioningPortal
     class Device < Struct.new(:name, :udid)
       def to_s
-        "#{self.udid} #{self.name}"
+        "#{self.name} #{self.udid}"
       end
     end
 
@@ -20,7 +20,7 @@ module Cupertino
       end
     end
 
-    class ProvisioningProfile < Struct.new(:name, :app_id, :status)
+    class ProvisioningProfile < Struct.new(:name, :type, :app_id, :status)
       def to_s
         "#{self.name}"
       end

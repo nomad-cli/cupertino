@@ -14,6 +14,8 @@ module Cupertino
       end
 
       def get(uri, parameters = [], referer = nil, headers = {})
+        uri = ::File.join("https://#{Cupertino::HOSTNAME}", uri) unless /^https?/ === uri
+
         3.times do
           super(uri, parameters, referer, headers)
 
@@ -62,12 +64,12 @@ module Cupertino
 
         page.parser.xpath('//div[@class="nt_multi"]/table/tbody/tr').each do |row|
           name = row.at_xpath('td[@class="name"]//p/text()').to_s.strip rescue nil
-          
+
           if name == certificate.name
             download_url = row.at_xpath('td[@class="last"]/a')['href'].to_s.strip rescue nil
 
             self.pluggable_parser.default = Mechanize::Download
-            download = get(::File.join("https://#{Cupertino::HOSTNAME}", download_url))
+            download = get(download_url)
             download.save
             return download.filename
           end
@@ -135,12 +137,70 @@ module Cupertino
         profiles = []
         page.parser.xpath('//fieldset[@id="fs-0"]/table/tbody/tr').each do |row|
           profile = ProvisioningProfile.new
-          profile.name = row.at_xpath('td[@class="profile"]/text()').to_s.strip rescue nil
+          profile.name = row.at_xpath('td[@class="profile"]//text()').to_s.strip rescue nil
+          profile.type = type
           profile.app_id = row.at_xpath('td[@class="appid"]/text()').to_s.strip rescue nil
           profile.status = row.at_xpath('td[@class="statusXcode"]/text()').to_s.strip rescue nil
           profiles << profile
         end
         profiles
+      end
+
+      def manage_devices_for_profile(profile)
+        raise ArgumentError unless block_given?
+
+        list_profiles(profile.type)
+
+        modify_url = nil
+        page.parser.xpath('//fieldset[@id="fs-0"]/table/tbody/tr').each do |row|
+          break if modify_url
+
+          name = row.at_xpath('td[@class="profile"]//text()').to_s.strip rescue nil
+
+          if name == profile.name
+            row.css('td.action a').each do |a|
+              if /edit\.action/ === a['href']
+                modify_url = a['href']
+              end
+            end
+          end
+        end
+
+        if modify_url
+          get(modify_url)
+
+          on, off = [], []
+          page.parser.css('.checkboxlist.last td').each do |td|
+            checkbox = td.at_xpath('input[@type="checkbox"]')
+
+            device = Device.new
+            device.name = td.at_xpath('label/text()').to_s.strip rescue nil
+            device.udid = checkbox['value'].to_s.strip rescue nil
+
+            if checkbox['checked']
+              on << device
+            else
+              off << device
+            end
+          end
+
+          devices = yield on, off
+
+          form = page.form_with(:name => 'save')
+          form.checkboxes_with(:name => "selectedDevices").each do |checkbox|
+            checkbox.check
+            if devices.detect{|device| device.udid == checkbox['value']}
+              checkbox.check
+            else
+              checkbox.uncheck
+            end
+          end
+
+          button = form.button_with(:name => 'submit')
+          form.click_button(button)
+        end
+
+        return nil
       end
 
       def list_app_ids
@@ -180,8 +240,8 @@ module Cupertino
           team_option = team_list.option_with(:text => self.team)
           team_option.select
 
-          btn = form.button_with(:name => 'action:saveTeamSelection!save')
-          form.click_button(btn)
+          button = form.button_with(:name => 'action:saveTeamSelection!save')
+          form.click_button(button)
         end
       end
     end

@@ -37,7 +37,7 @@ command :'profiles:manage:devices' do |c|
 
   c.action do |args, options|
     type = args.first.downcase.to_sym rescue nil
-    profiles = try{agent.list_profiles(:development)}
+    profiles = try{agent.list_profiles(type ||= :development)}
 
     say_warning "No #{type} provisioning profiles found." and abort if profiles.empty?
 

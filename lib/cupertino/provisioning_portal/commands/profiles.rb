@@ -67,3 +67,23 @@ command :'profiles:manage:devices' do |c|
 end
 
 alias_command :'profiles:manage', :'profiles:manage:devices'
+
+command :'profiles:download' do |c|
+  c.syntax = 'ios profiles:download'
+  c.summary = 'Downloads the Provisioning Profiles'
+  c.description = ''
+
+  c.action do |args, options|
+    type = args.first.downcase.to_sym rescue nil
+    profiles = try{agent.list_profiles(type ||= :development)}
+    profiles = profiles.find_all{|profile| profile.status == 'Active'}
+
+    say_warning "No active #{type} profiles found." and abort if profiles.empty?
+    profile = choose "Select a profile to download:", *profiles
+    if filename = agent.download_profile(profile)
+      say_ok "Successfully downloaded: '#{filename}'"
+    else
+      say_error "Could not download profile"
+    end
+  end
+end

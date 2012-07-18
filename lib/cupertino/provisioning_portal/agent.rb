@@ -146,6 +146,25 @@ module Cupertino
         profiles
       end
 
+      def download_profile(profile)
+        list_profiles(profile.type)
+
+        page.parser.xpath('//fieldset[@id="fs-0"]/table/tbody/tr').each do |row|
+          name = row.at_xpath('td[@class="profile"]//span/text()').to_s.strip rescue nil
+
+          if name == profile.name
+            download_url = row.at_xpath('td[@class="action"]/a')['href'].to_s.strip rescue nil
+
+            self.pluggable_parser.default = Mechanize::Download
+            download = get(download_url)
+            download.save
+            return download.filename
+          end
+        end
+
+        return nil
+      end
+
       def manage_devices_for_profile(profile)
         raise ArgumentError unless block_given?
 

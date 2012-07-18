@@ -107,6 +107,7 @@ _Crossed out commands are not yet implemented_
 
 - `profiles:list`
 - `profiles:manage:devices`
+- `profiles:download`
 - ~~`profiles:add`~~
 - ~~`profiles:edit`~~
 

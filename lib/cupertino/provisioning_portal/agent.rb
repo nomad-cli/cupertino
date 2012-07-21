@@ -1,5 +1,5 @@
 require 'mechanize'
-require 'netrc'
+require 'security'
 
 module Cupertino
   module ProvisioningPortal
@@ -10,7 +10,8 @@ module Cupertino
         super
         self.user_agent_alias = 'Mac Safari'
 
-        @username, @password = Netrc.read[Cupertino::HOSTNAME]
+        pw = Security::InternetPassword.find(:server => Cupertino::HOSTNAME)
+        @username, @password = pw.attributes['acct'], pw.password if pw
       end
 
       def get(uri, parameters = [], referer = nil, headers = {})

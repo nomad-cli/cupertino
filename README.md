@@ -19,7 +19,7 @@ $ gem install cupertino
 $ ios login
 ```
 
-_Credentials are saved in `.netrc`. You will not be prompted for your username or password by commands  while you are logged in._
+_Credentials are saved in the keychain. You will not be prompted for your username or password by commands  while you are logged in._
 
 ### Devices
 

@@ -4,11 +4,9 @@ command :logout do |c|
   c.description = ''
 
   c.action do |args, options|
-    say_error "You are not authenticated" and abort unless Netrc.read[Cupertino::HOSTNAME]
+    say_error "You are not authenticated" and abort unless Security::InternetPassword.find(:server => Cupertino::HOSTNAME)
 
-    netrc = Netrc.read
-    netrc.delete(Cupertino::HOSTNAME)
-    netrc.save
+    Security::InternetPassword.delete(:server => Cupertino::HOSTNAME)
 
     say_ok "Account credentials removed"
   end

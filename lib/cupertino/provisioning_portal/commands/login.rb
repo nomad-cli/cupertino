@@ -4,14 +4,12 @@ command :login do |c|
   c.description = ''
 
   c.action do |args, options|
-    say_warning "You are already authenticated" if Netrc.read[Cupertino::HOSTNAME]
+    say_warning "You are already authenticated" if Security::InternetPassword.find(:server => Cupertino::HOSTNAME)
 
     user = ask "Username:"
     pass = password "Password:"
 
-    netrc = Netrc.read
-    netrc[Cupertino::HOSTNAME] = user, pass
-    netrc.save
+    Security::InternetPassword.add(Cupertino::HOSTNAME, user, pass)
 
     say_ok "Account credentials saved"
   end

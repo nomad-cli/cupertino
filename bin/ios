@@ -3,7 +3,6 @@
 require 'commander/import'
 require 'terminal-table'
 require 'term/ansicolor'
-require 'netrc'
 
 require 'cupertino'
 

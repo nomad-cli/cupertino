@@ -7,6 +7,7 @@ require 'term/ansicolor'
 require 'cupertino'
 
 HighLine.track_eof = false # Fix for built-in Ruby
+Signal.trap("INT") {} # Suppress backtrace when exiting command
 
 program :version, Cupertino::VERSION
 program :description, 'A command-line interface for the iOS Provisioning Portal'

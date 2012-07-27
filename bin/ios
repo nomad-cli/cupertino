@@ -19,3 +19,4 @@ program :help_formatter, :compact
 default_command :help
 
 require 'cupertino/provisioning_portal'
+require 'cupertino/itunes_connect'

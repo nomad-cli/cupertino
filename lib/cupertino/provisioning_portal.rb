@@ -1,4 +1,5 @@
 require 'mechanize'
+require 'certified'
 
 module Cupertino
   module ProvisioningPortal

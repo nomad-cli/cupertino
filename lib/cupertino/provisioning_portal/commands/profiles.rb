@@ -119,6 +119,12 @@ command :'profiles:download:all' do |c|
 
     profiles.each do |p|
       if filename = agent.download_profile(p)
+
+        if(File.exist?(filename+".1"))
+            File.delete(filename)
+            File.rename(filename+".1", filename)
+        end
+
         say_ok "Successfully downloaded: '#{filename}'"
       else
         say_error "Could not download profile"

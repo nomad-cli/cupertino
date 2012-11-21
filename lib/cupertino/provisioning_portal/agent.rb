@@ -1,5 +1,6 @@
 require 'mechanize'
 require 'security'
+require 'json'
 
 module Cupertino
   module ProvisioningPortal
@@ -270,6 +271,23 @@ module Cupertino
           button = form.button_with(:name => 'submit')
           form.click_button(button)
         end
+      end
+      
+      def configure_pass_type_id(pass_type_id, csr_path, aps_cert_type = 'development')
+        pass_type_id = list_pass_type_ids().delete_if{ |item| item.id != pass_type_id }.shift rescue nil
+        return if pass_type_id.nil? 
+        
+        csr_contents = ::File.open(csr_path, "rb").read
+        
+        post("https://developer.apple.com/ios/assistant/passtypecommit.action", { 'cardIdValue' => pass_type_id.card_id, 'csrValue' => csr_contents, 'apsCertType' => aps_cert_type })
+        
+        JSON.parse(page.content)
+      end
+      
+      def pass_type_generate(aps_cert_type = 'development')
+        post("https://developer.apple.com/ios/assistant/passtypegenerate.action", { 'apsCertType' => aps_cert_type })
+        
+        ::JSON.parse(page.content)
       end
         
       private

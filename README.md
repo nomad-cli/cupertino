@@ -94,6 +94,29 @@ $ ios certificates:list
 +------------------+----------------------------------+-----------------+--------+
 ```
 
+### Pass Type IDs
+
+```sh
+$ ios pass_type_ids:list
+
++--------------------------------------------+------------------------------+
+| Identifier                                 | Description                  |
++--------------------------------------------+------------------------------+
+| pass.com.example.eventTicket.myExamplePass | My Example Pass Event Ticket |
++--------------------------------------------+------------------------------+
+```
+
+---
+
+```sh
+$ ios pass_type_ids:add
+Pass Type ID:
+$ pass.com.example.movieTicket.myExamplePass
+Description:
+$ My Example Pass Movie Ticket
+Added pass.com.example.movieTicket.myExamplePass: My Example Pass Movie Ticket
+```
+
 ## Commands
 
 _Crossed out commands are not yet implemented_
@@ -117,6 +140,9 @@ _Crossed out commands are not yet implemented_
 
 - `app_ids:list`
 - ~~`app_ids:new`~~
+
+- `pass_type_ids:list`
+- `pass_type_ids:add`
 
 ## Contact
 

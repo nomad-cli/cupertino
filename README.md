@@ -98,6 +98,7 @@ $ ios certificates:list
 
 ```sh
 $ ios pass_type_ids:add --pass_type_id pass.com.example.coupon.myExamplePass --description "My Example Pass Coupon"
+
 Added pass.com.example.coupon.myExamplePass: My Example Pass Coupon
 ```
 
@@ -120,6 +121,7 @@ $ ios pass_type_ids:list
 
 ```sh
 $ ios pass_type_ids:pass_certificates:add --pass_type_id pass.com.example.coupon.myExamplePass --csr_path _path/to/csr_
+
 Configured pass.com.example.coupon.myExamplePass. Apple is generating the certificate...
 Certificate generated and is ready to be downloaded.
 ```
@@ -128,17 +130,19 @@ Certificate generated and is ready to be downloaded.
 
 ```sh
 $ ios pass_type_ids:pass_certificates:list --pass_type_id pass.com.example.coupon.myExamplePass
-+--------------------------+------------+-----------------+----------------+
-| Name                     | Status     | Expiration Date | Certificate ID |
-+--------------------------+------------+-----------------+----------------+
-|         Pass Certificate | Configured | Nov 21, 2013    | AAAAAAAAAA     |
-+--------------------------+------------+-----------------+----------------+
+
++------------------+------------+-----------------+----------------+
+| Name             | Status     | Expiration Date | Certificate ID |
++------------------+------------+-----------------+----------------+
+| Pass Certificate | Configured | Nov 21, 2013    | AAAAAAAAAA     |
++------------------+------------+-----------------+----------------+
 ```
 
 ---
 
 ```sh
 $ ios pass_type_ids:pass_certificates:download --pass_type_id pass.com.example.coupon.myExamplePass --cert_id AAAAAAAAAA
+
 Successfully downloaded: 'AAAAAAAAAA.cer'
 ```
 

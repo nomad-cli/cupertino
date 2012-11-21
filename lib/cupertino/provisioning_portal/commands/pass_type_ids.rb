@@ -9,11 +9,11 @@ command :'pass_type_ids:list' do |c|
     say_warning "No pass type IDs found." and abort if pass_type_ids.empty?
 
     table = Terminal::Table.new do |t|
-      t << ["Identifier", "Description"]
+      t << ["Card ID","Identifier", "Description", "Pass Certificates"]
       t.add_separator
       pass_type_ids.each do |pass_type_id|
 
-        t << [pass_type_id.id, pass_type_id.description]
+        t << [pass_type_id.card_id, pass_type_id.id, pass_type_id.description, pass_type_id.pass_certificates]
       end
     end
 

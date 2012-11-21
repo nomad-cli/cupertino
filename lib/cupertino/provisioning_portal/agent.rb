@@ -243,7 +243,21 @@ module Cupertino
         end
         app_ids
       end
-
+      
+      def list_pass_type_ids
+        get("https://developer.apple.com/ios/manage/passtypeids/index.action")
+        
+        pass_type_ids = []
+        page.parser.xpath('//fieldset[@id="fs-0"]/table/tbody/tr').each do |row|
+          pass_type_id = PassTypeID.new
+          pass_type_id.id = row.at_xpath('td[@class="name"]/strong/text()').to_s.strip rescue nil
+          pass_type_id.description = row.at_xpath('td[@class="name"]/text()').to_s.strip rescue nil
+          
+          pass_type_ids << pass_type_id
+        end
+        pass_type_ids
+      end
+        
       private
 
       def login!

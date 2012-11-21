@@ -275,7 +275,7 @@ module Cupertino
           pass_certificate.expiration_date = row.at_xpath('td[3]/text()').to_s.strip rescue nil
           pass_certificate.cert_id = row.at_xpath('td[4]//a[@id="form_logginMemberCert_"]')['href'].to_s.strip.match(/certDisplayId=(.+?)$/)[1] rescue nil
           
-          pass_certificates << pass_certificate
+          pass_certificates << pass_certificate unless pass_certificate.cert_id.nil?
         end
         pass_certificates
       end
@@ -307,6 +307,17 @@ module Cupertino
         post("https://developer.apple.com/ios/assistant/passtypegenerate.action", { 'apsCertType' => aps_cert_type })
         
         ::JSON.parse(page.content)
+      end
+      
+      def download_pass_certificate(pass_type_id, cert_id = nil)
+        pass_certificate = (cert_id.nil? ? list_pass_certificates(pass_type_id).last : list_pass_certificates(pass_type_id).delete_if{ |item| item.cert_id != cert_id }.shift) rescue nil
+        return nil if pass_certificate.nil?
+
+        self.pluggable_parser.default = Mechanize::Download
+        download = get("/ios/manage/passtypeids/downloadCert.action?certDisplayId=#{pass_certificate.cert_id}")
+        download.filename = "#{pass_certificate.cert_id}.cer"
+        download.save
+        return download.filename
       end
       
       private

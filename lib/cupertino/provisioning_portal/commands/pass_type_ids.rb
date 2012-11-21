@@ -106,3 +106,24 @@ command :'pass_type_ids:pass_certificates:add' do |c|
     say_ok "Certificate generated and is ready to be downloaded."
   end
 end
+
+command :'pass_type_ids:pass_certificates:download' do |c|
+  c.syntax = 'ios pass_type_ids:pass_certificates:download --pass_type_id STRING [--cert_id STRING]'
+  c.summary = 'Adds the pass certificate for pass type ID to the Provisioning Portal'
+  c.description = ''
+  c.option '--pass_type_id STRING', String, 'Pass Type ID'
+  c.option '--cert_id STRING', String, 'Certificate ID'
+  
+  c.action do |args, options|
+    pass_type_id = options.pass_type_id
+    pass_type_id ||= ask "Pass Type ID:"
+    say_error "Pass Type ID must begin with the string 'pass.' and recommended to use reverse-domain name style. Example: pass.domainname.passname" and abort if pass_type_id.end_with?('.') or pass_type_id.index('pass.') != 0 or pass_type_id.match(/^([A-Za-z0-9.-]+)*\*?$/).nil?
+    cert_id = options.cert_id
+    
+    if filename = agent.download_pass_certificate(pass_type_id, cert_id)
+      say_ok "Successfully downloaded: '#{filename}'"
+    else
+      say_error "Could not download pass certificate"
+    end
+  end
+end

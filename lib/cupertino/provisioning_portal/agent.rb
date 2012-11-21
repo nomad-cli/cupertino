@@ -254,11 +254,30 @@ module Cupertino
           pass_type_id.card_id = row.at_xpath('td[@class="checkbox"]/input[@name="selectedValues"]')['value'].to_s.strip rescue nil
           pass_type_id.id = row.at_xpath('td[@class="name"]/strong/text()').to_s.strip rescue nil
           pass_type_id.description = row.at_xpath('td[@class="name"]/text()').to_s.strip rescue nil
-          pass_type_id.pass_certificates = row.at_xpath('td[@class="profile"]').inner_text.to_s.strip rescue nil
+          pass_type_id.pass_certificates = row.at_xpath('td[@class="profile"]').inner_text.strip rescue nil
           
           pass_type_ids << pass_type_id
         end
         pass_type_ids
+      end
+      
+      def list_pass_certificates(pass_type_id)
+        pass_type_id = list_pass_type_ids().delete_if{ |item| item.id != pass_type_id }.shift rescue nil
+        return [] if pass_type_id.nil?
+        
+        get("https://developer.apple.com/ios/manage/passtypeids/configure.action?displayId=#{pass_type_id.card_id}")
+        
+        pass_certificates = []
+        page.parser.xpath('//form[@name="form_logginMemberCert"]/table/tr[position()>1]').each do |row|
+          pass_certificate = PassCertificate.new
+          pass_certificate.name = row.at_xpath('td[1]').inner_text.strip rescue nil
+          pass_certificate.status = row.at_xpath('td[2]/span/text()').to_s.strip rescue nil
+          pass_certificate.expiration_date = row.at_xpath('td[3]/text()').to_s.strip rescue nil
+          pass_certificate.cert_id = row.at_xpath('td[4]//a[@id="form_logginMemberCert_"]')['href'].to_s.strip.match(/certDisplayId=(.+?)$/)[1] rescue nil
+          
+          pass_certificates << pass_certificate
+        end
+        pass_certificates
       end
       
       def add_pass_type_id(pass_type_id, description)
@@ -273,9 +292,9 @@ module Cupertino
         end
       end
       
-      def configure_pass_type_id(pass_type_id, csr_path, aps_cert_type = 'development')
+      def add_pass_certificate(pass_type_id, csr_path, aps_cert_type = 'development')
         pass_type_id = list_pass_type_ids().delete_if{ |item| item.id != pass_type_id }.shift rescue nil
-        return if pass_type_id.nil? 
+        return if pass_type_id.nil?
         
         csr_contents = ::File.open(csr_path, "rb").read
         
@@ -289,7 +308,7 @@ module Cupertino
         
         ::JSON.parse(page.content)
       end
-        
+      
       private
 
       def login!

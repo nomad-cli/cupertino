@@ -9,7 +9,7 @@ command :'pass_type_ids:list' do |c|
     say_warning "No pass type IDs found." and abort if pass_type_ids.empty?
 
     table = Terminal::Table.new do |t|
-      t << ["Card ID","Identifier", "Description", "Pass Certificates"]
+      t << ["Card ID", "Identifier", "Description", "Pass Certificates"]
       t.add_separator
       pass_type_ids.each do |pass_type_id|
 
@@ -44,9 +44,38 @@ command :'pass_type_ids:add' do |c|
   end
 end
 
-command :'pass_type_ids:configure' do |c|
-  c.syntax = 'ios pass_type_ids:configure --pass_type_id STRING --csr_path STRING'
-  c.summary = 'Configure the pass type ID in the Provisioning Portal'
+command :'pass_type_ids:pass_certificates:list' do |c|
+  c.syntax = 'ios pass_type_ids:pass_certificates:list'
+  c.summary = 'Lists the Pass Certificates for a specific Pass Type ID'
+  c.description = ''
+  c.option '--pass_type_id STRING', String, 'Pass Type ID'
+
+  c.action do |args, options|
+    pass_type_id = options.pass_type_id
+    pass_type_id ||= ask "Pass Type ID:"
+    say_error "Pass Type ID must begin with the string 'pass.' and recommended to use reverse-domain name style. Example: pass.domainname.passname" and abort if pass_type_id.end_with?('.') or pass_type_id.index('pass.') != 0 or pass_type_id.match(/^([A-Za-z0-9.-]+)*\*?$/).nil?
+    
+    pass_certificates = try{agent.list_pass_certificates(pass_type_id)}
+    say_warning "No pass certificates found for pass type id (#{pass_type_id})." and abort if pass_certificates.empty?
+
+    table = Terminal::Table.new do |t|
+      t << ["Name", "Status", "Expiration Date", "Certificate ID"]
+      t.add_separator
+      pass_certificates.each do |pass_certificate|
+
+        t << [pass_certificate.name, pass_certificate.status, pass_certificate.expiration_date, pass_certificate.cert_id]
+      end
+    end
+
+    puts table
+  end
+end
+
+alias_command :'pass_type_ids:pass_certificates', :'pass_type_ids:pass_certificates:list'
+
+command :'pass_type_ids:pass_certificates:add' do |c|
+  c.syntax = 'ios pass_type_ids:pass_certificates:add --pass_type_id STRING --csr_path STRING'
+  c.summary = 'Adds the pass certificate for pass type ID to the Provisioning Portal'
   c.description = ''
   c.option '--pass_type_id STRING', String, 'Pass Type ID'
   c.option '--csr_path STRING', String, 'CSR Path'
@@ -59,7 +88,7 @@ command :'pass_type_ids:configure' do |c|
     csr_path ||= ask "CSR Path:"
     say_error "Must be a valid path to a CSR." and abort if !::File.exists?(csr_path)
     
-    result = agent.configure_pass_type_id(pass_type_id, csr_path)
+    result = agent.add_pass_certificate(pass_type_id, csr_path)
     say_error "Failed to configure #{pass_type_id}" and abort if !result["acknowledgement"] or result["pageError"]
     
     say_ok "Configured #{pass_type_id}. Apple is generating the certificate..."

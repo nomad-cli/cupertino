@@ -34,6 +34,12 @@ module Cupertino
         "#{self.id} #{self.description}"
       end
     end
+    
+    class PassCertificate < Struct.new(:name, :status, :expiration_date, :cert_id)
+      def to_s
+        "#{self.cert_id}"
+      end
+    end
   end
 end
 

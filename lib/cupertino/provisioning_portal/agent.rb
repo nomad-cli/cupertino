@@ -257,6 +257,18 @@ module Cupertino
         end
         pass_type_ids
       end
+      
+      def add_pass_type_id(pass_type_id, description)
+        get("https://developer.apple.com/ios/manage/passtypeids/add.action")
+        
+        if form = page.form_with(:name => 'save')
+          form['cardName'] = description
+          form['cardIdentifier'] = pass_type_id
+          
+          button = form.button_with(:name => 'submit')
+          form.click_button(button)
+        end
+      end
         
       private
 

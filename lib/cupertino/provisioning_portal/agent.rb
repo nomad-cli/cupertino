@@ -270,7 +270,7 @@ module Cupertino
         pass_certificates = []
         page.parser.xpath('//form[@name="form_logginMemberCert"]/table/tr[position()>1]').each do |row|
           pass_certificate = PassCertificate.new
-          pass_certificate.name = row.at_xpath('td[1]').inner_text.strip.gsub(/^\p{Space}+|\p{Space}+$/, '') rescue nil
+          pass_certificate.name = row.at_xpath('td[1]').inner_text.strip rescue nil
           pass_certificate.status = row.at_xpath('td[2]/span/text()').to_s.strip rescue nil
           pass_certificate.expiration_date = row.at_xpath('td[3]/text()').to_s.strip rescue nil
           pass_certificate.certificate_id = row.at_xpath('td[4]//a[@id="form_logginMemberCert_"]')['href'].to_s.strip.match(/certDisplayId=(.+?)$/)[1] rescue nil

@@ -97,7 +97,7 @@ $ ios certificates:list
 ### Pass Type IDs
 
 ```sh
-$ ios pass_type_ids:add --pass_type_id pass.com.example.coupon.myExamplePass --description "My Example Pass Coupon"
+$ ios pass_type_ids:add pass.com.example.coupon.myExamplePass --description "My Example Pass Coupon"
 
 Added pass.com.example.coupon.myExamplePass: My Example Pass Coupon
 ```
@@ -107,20 +107,20 @@ Added pass.com.example.coupon.myExamplePass: My Example Pass Coupon
 ```sh
 $ ios pass_type_ids:list
 
-+------------+--------------------------------------------+------------------------------+-------------------+
-| Card ID    | Identifier                                 | Description                  | Pass Certificates |
-+------------+--------------------------------------------+------------------------------+-------------------+
-| WWWWWWWWWW | pass.com.example.coupon.myExamplePass      | My Example Pass Coupon       | None              |
-| XXXXXXXXXX | pass.com.example.eventTicket.myExamplePass | My Example Pass Event Ticket | Pass Certificate  |
-| YYYYYYYYYY | pass.com.example.movieTicket.myExamplePass | My Example Pass Movie Ticket | Pass Certificate  |
-| ZZZZZZZZZZ | pass.com.example.test.001                  | Test                         | Pass Certificate  |
-+------------+--------------------------------------------+------------------------------+-------------------+
++------------+--------------------------------------------+--------------+-------------------+
+| Card ID    | Identifier                                 | Description  | Pass Certificates |
++------------+--------------------------------------------+--------------+-------------------+
+| WWWWWWWWWW | pass.com.example.coupon.myExamplePass      | Coupon       | None              |
+| XXXXXXXXXX | pass.com.example.eventTicket.myExamplePass | Event Ticket | Pass Certificate  |
+| YYYYYYYYYY | pass.com.example.movieTicket.myExamplePass | Movie Ticket | Pass Certificate  |
+| ZZZZZZZZZZ | pass.com.example.test.001                  | Test         | Pass Certificate  |
++------------+--------------------------------------------+--------------+-------------------+
 ```
 
 ---
 
 ```sh
-$ ios pass_type_ids:pass_certificates:add --pass_type_id pass.com.example.coupon.myExamplePass --csr_path _path/to/csr_
+$ ios pass_type_ids:certificates:add pass.com.example.coupon.myExamplePass --csr /path/to/csr
 
 Configured pass.com.example.coupon.myExamplePass. Apple is generating the certificate...
 Certificate generated and is ready to be downloaded.
@@ -129,7 +129,7 @@ Certificate generated and is ready to be downloaded.
 ---
 
 ```sh
-$ ios pass_type_ids:pass_certificates:list --pass_type_id pass.com.example.coupon.myExamplePass
+$ ios pass_type_ids:certificates:list pass.com.example.coupon.myExamplePass
 
 +------------------+------------+-----------------+----------------+
 | Name             | Status     | Expiration Date | Certificate ID |
@@ -141,7 +141,7 @@ $ ios pass_type_ids:pass_certificates:list --pass_type_id pass.com.example.coupo
 ---
 
 ```sh
-$ ios pass_type_ids:pass_certificates:download --pass_type_id pass.com.example.coupon.myExamplePass --cert_id AAAAAAAAAA
+$ ios pass_type_ids:certificates:download pass.com.example.coupon.myExamplePass --certificate_id AAAAAAAAAA
 
 Successfully downloaded: 'AAAAAAAAAA.cer'
 ```
@@ -172,9 +172,11 @@ _Crossed out commands are not yet implemented_
 
 - `pass_type_ids:list`
 - `pass_type_ids:add`
-- `pass_type_ids:pass_certificates:list`
-- `pass_type_ids:pass_certificates:add`
-- `pass_type_ids:pass_certificates:download`
+- ~~`pass_type_ids:remove`~~
+- `pass_type_ids:certificates:list`
+- `pass_type_ids:certificates:add`
+- `pass_type_ids:certificates:download`
+- ~~`pass_type_ids:certificates:revoke CERTIFICATE_NAME`~~
 
 ## Contact
 

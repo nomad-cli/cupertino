@@ -94,6 +94,58 @@ $ ios certificates:list
 +------------------+----------------------------------+-----------------+--------+
 ```
 
+### Pass Type IDs
+
+```sh
+$ ios pass_type_ids:add --pass_type_id pass.com.example.coupon.myExamplePass --description "My Example Pass Coupon"
+
+Added pass.com.example.coupon.myExamplePass: My Example Pass Coupon
+```
+
+---
+
+```sh
+$ ios pass_type_ids:list
+
++------------+--------------------------------------------+------------------------------+-------------------+
+| Card ID    | Identifier                                 | Description                  | Pass Certificates |
++------------+--------------------------------------------+------------------------------+-------------------+
+| WWWWWWWWWW | pass.com.example.coupon.myExamplePass      | My Example Pass Coupon       | None              |
+| XXXXXXXXXX | pass.com.example.eventTicket.myExamplePass | My Example Pass Event Ticket | Pass Certificate  |
+| YYYYYYYYYY | pass.com.example.movieTicket.myExamplePass | My Example Pass Movie Ticket | Pass Certificate  |
+| ZZZZZZZZZZ | pass.com.example.test.001                  | Test                         | Pass Certificate  |
++------------+--------------------------------------------+------------------------------+-------------------+
+```
+
+---
+
+```sh
+$ ios pass_type_ids:pass_certificates:add --pass_type_id pass.com.example.coupon.myExamplePass --csr_path _path/to/csr_
+
+Configured pass.com.example.coupon.myExamplePass. Apple is generating the certificate...
+Certificate generated and is ready to be downloaded.
+```
+
+---
+
+```sh
+$ ios pass_type_ids:pass_certificates:list --pass_type_id pass.com.example.coupon.myExamplePass
+
++------------------+------------+-----------------+----------------+
+| Name             | Status     | Expiration Date | Certificate ID |
++------------------+------------+-----------------+----------------+
+| Pass Certificate | Configured | Nov 21, 2013    | AAAAAAAAAA     |
++------------------+------------+-----------------+----------------+
+```
+
+---
+
+```sh
+$ ios pass_type_ids:pass_certificates:download --pass_type_id pass.com.example.coupon.myExamplePass --cert_id AAAAAAAAAA
+
+Successfully downloaded: 'AAAAAAAAAA.cer'
+```
+
 ## Commands
 
 _Crossed out commands are not yet implemented_
@@ -117,6 +169,12 @@ _Crossed out commands are not yet implemented_
 
 - `app_ids:list`
 - ~~`app_ids:new`~~
+
+- `pass_type_ids:list`
+- `pass_type_ids:add`
+- `pass_type_ids:pass_certificates:list`
+- `pass_type_ids:pass_certificates:add`
+- `pass_type_ids:pass_certificates:download`
 
 ## Contact
 

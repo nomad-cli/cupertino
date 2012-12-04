@@ -1,5 +1,7 @@
+#encoding: UTF-8
 require 'mechanize'
 require 'security'
+require 'json'
 
 module Cupertino
   module ProvisioningPortal
@@ -243,7 +245,82 @@ module Cupertino
         end
         app_ids
       end
+      
+      def list_pass_type_ids
+        get("https://developer.apple.com/ios/manage/passtypeids/index.action")
+        
+        pass_type_ids = []
+        page.parser.xpath('//fieldset[@id="fs-0"]/table/tbody/tr').each do |row|
+          pass_type_id = PassTypeID.new
+          pass_type_id.card_id = row.at_xpath('td[@class="checkbox"]/input[@name="selectedValues"]')['value'].to_s.strip rescue nil
+          pass_type_id.id = row.at_xpath('td[@class="name"]/strong/text()').to_s.strip rescue nil
+          pass_type_id.description = row.at_xpath('td[@class="name"]/text()').to_s.strip rescue nil
+          pass_type_id.pass_certificates = row.at_xpath('td[@class="profile"]').inner_text.strip rescue nil
+          
+          pass_type_ids << pass_type_id
+        end
+        pass_type_ids
+      end
+      
+      def list_pass_certificates(pass_type_id)
+        pass_type_id = list_pass_type_ids().delete_if{ |item| item.id != pass_type_id }.shift rescue nil
+        return [] if pass_type_id.nil?
+        
+        get("https://developer.apple.com/ios/manage/passtypeids/configure.action?displayId=#{pass_type_id.card_id}")
+        
+        pass_certificates = []
+        page.parser.xpath('//form[@name="form_logginMemberCert"]/table/tr[position()>1]').each do |row|
+          pass_certificate = PassCertificate.new
+          pass_certificate.name = row.at_xpath('td[1]').inner_text.strip.gsub(/^\p{Space}+|\p{Space}+$/, '') rescue nil
+          pass_certificate.status = row.at_xpath('td[2]/span/text()').to_s.strip rescue nil
+          pass_certificate.expiration_date = row.at_xpath('td[3]/text()').to_s.strip rescue nil
+          pass_certificate.cert_id = row.at_xpath('td[4]//a[@id="form_logginMemberCert_"]')['href'].to_s.strip.match(/certDisplayId=(.+?)$/)[1] rescue nil
+          
+          pass_certificates << pass_certificate unless pass_certificate.cert_id.nil?
+        end
+        pass_certificates
+      end
+      
+      def add_pass_type_id(pass_type_id, description)
+        get("https://developer.apple.com/ios/manage/passtypeids/add.action")
+        
+        if form = page.form_with(:name => 'save')
+          form['cardName'] = description
+          form['cardIdentifier'] = pass_type_id
+          
+          button = form.button_with(:name => 'submit')
+          form.click_button(button)
+        end
+      end
+      
+      def add_pass_certificate(pass_type_id, csr_path, aps_cert_type = 'development')
+        pass_type_id = list_pass_type_ids().delete_if{ |item| item.id != pass_type_id }.shift rescue nil
+        return if pass_type_id.nil?
+        
+        csr_contents = ::File.open(csr_path, "rb").read
+        
+        post("https://developer.apple.com/ios/assistant/passtypecommit.action", { 'cardIdValue' => pass_type_id.card_id, 'csrValue' => csr_contents, 'apsCertType' => aps_cert_type })
+        
+        JSON.parse(page.content)
+      end
+      
+      def pass_type_generate(aps_cert_type = 'development')
+        post("https://developer.apple.com/ios/assistant/passtypegenerate.action", { 'apsCertType' => aps_cert_type })
+        
+        ::JSON.parse(page.content)
+      end
+      
+      def download_pass_certificate(pass_type_id, cert_id = nil)
+        pass_certificate = (cert_id.nil? ? list_pass_certificates(pass_type_id).last : list_pass_certificates(pass_type_id).delete_if{ |item| item.cert_id != cert_id }.shift) rescue nil
+        return nil if pass_certificate.nil?
 
+        self.pluggable_parser.default = Mechanize::Download
+        download = get("/ios/manage/passtypeids/downloadCert.action?certDisplayId=#{pass_certificate.cert_id}")
+        download.filename = "#{pass_certificate.cert_id}.cer"
+        download.save
+        return download.filename
+      end
+      
       private
 
       def login!

@@ -28,6 +28,18 @@ module Cupertino
     end
 
     class UnsuccessfulAuthenticationError < RuntimeError; end
+    
+    class PassTypeID < Struct.new(:description, :id, :pass_certificates, :card_id)
+      def to_s
+        "#{self.id} #{self.description}"
+      end
+    end
+    
+    class PassCertificate < Struct.new(:name, :status, :expiration_date, :cert_id)
+      def to_s
+        "#{self.cert_id}"
+      end
+    end
   end
 end
 

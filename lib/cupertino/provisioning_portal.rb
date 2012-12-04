@@ -3,6 +3,8 @@ require 'certified'
 
 module Cupertino
   module ProvisioningPortal
+    class UnsuccessfulAuthenticationError < RuntimeError; end
+
     class Device < Struct.new(:name, :udid)
       def to_s
         "#{self.name} #{self.udid}"
@@ -26,8 +28,18 @@ module Cupertino
         "#{self.name}"
       end
     end
-
-    class UnsuccessfulAuthenticationError < RuntimeError; end
+    
+    class PassTypeID < Struct.new(:description, :id, :pass_certificates, :card_id)
+      def to_s
+        "#{self.id} #{self.description}"
+      end
+    end
+    
+    class PassCertificate < Struct.new(:name, :status, :expiration_date, :certificate_id)
+      def to_s
+        "#{self.certificate_id}"
+      end
+    end
   end
 end
 

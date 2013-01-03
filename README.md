@@ -54,6 +54,16 @@ $ ios profiles:list
 ---
 
 ```sh
+$ ios profiles:download:all
+$ ios profiles:download:all distribution
+$ ios profiles:download:all development
+
+```
+
+---
+
+
+```sh
 $ ios profiles:manage:devices
 ```
 

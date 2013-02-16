@@ -65,6 +65,18 @@ Johnny Appleseed iPad 0123456789012345678901234567890123abcdef
 # Johnny Appleseed iPhone abcdef0123456789012345678901234567890123
 ```
 
+```sh
+$ ios profiles:add_devices MyApp_Development_Profile “Johnny Appleseed iPad”=0123456789012345678901234567890123abcdef “Johnny Appleseed iPhone”=abcdef0123456789012345678901234567890123
+```
+
+_Adds (without an editor) a list of devices to a provisioning profile_
+
+```sh
+$ ios profiles:remove_devices MyApp_Development_Profile “Johnny Old iPad”=0123456789012345678901234567890123abcdef “Johnny Old iPhone”=abcdef0123456789012345678901234567890123
+```
+
+_Removes (without an editor) a list of devices from a provisioning profile_
+
 ### App IDs
 
 ```sh
@@ -159,6 +171,8 @@ _Crossed out commands are not yet implemented_
 
 - `profiles:list`
 - `profiles:manage:devices`
+- `profiles:add_devices`
+- `profiles:remove_devices`
 - `profiles:download`
 - ~~`profiles:add`~~
 - ~~`profiles:edit`~~

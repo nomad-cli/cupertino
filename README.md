@@ -126,19 +126,14 @@ _Opens an editor with a list of devices, each of which can be commented / uncomm
 
 - `login`
 - `logout`
-
 - `devices:add`
 - `devices:list`
-
 - `profiles:list`
 - `profiles:manage:devices`
 - `profiles:download`
-
 - `certificates:list [development|distribution]`
 - `certificates:download`
-
 - `app_ids:list`
-
 - `pass_type_ids:list`
 - `pass_type_ids:add`
 - `pass_type_ids:certificates:list`

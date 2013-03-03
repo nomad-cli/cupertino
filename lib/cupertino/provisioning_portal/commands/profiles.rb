@@ -37,17 +37,30 @@ command :'profiles:manage:devices' do |c|
 
   c.action do |args, options|
     type = args.first.downcase.to_sym rescue nil
+    name = args[1].downcase rescue nil
+    add_all = args[2].downcase rescue false
     profiles = try{agent.list_profiles(type ||= :development)}
 
     say_warning "No #{type} provisioning profiles found." and abort if profiles.empty?
 
-    profile = choose "Select a provisioning profile to manage:", *profiles
+    if name.nil?
+      profile = choose "Select a provisioning profile to manage:", *profiles
+    else
+      profiles = profiles.find_all{|profile| profile.name == name}
+      say_warning "No active #{name} profile found." and abort if profiles.empty?
+      profile = profiles[0]
+    end
 
     agent.manage_devices_for_profile(profile) do |on, off|
       lines = ["# Comment / Uncomment Devices to Turn Off / On for Provisioning Profile"]
       lines += on.collect{|device| "#{device}"}
-      lines += off.collect{|device| "# #{device}"}
-      result = ask_editor lines.join("\n")
+      if add_all
+        lines += off.collect{|device| "#{device}"}
+        result = lines.join("\n")
+      else  
+        lines += off.collect{|device| "# #{device}"}
+        result = ask_editor lines.join("\n")
+      end
 
       devices = []
       result.split(/\n+/).each do |line|
@@ -75,11 +88,18 @@ command :'profiles:download' do |c|
 
   c.action do |args, options|
     type = args.first.downcase.to_sym rescue nil
+    name = args[1].downcase rescue nil
     profiles = try{agent.list_profiles(type ||= :development)}
-    profiles = profiles.find_all{|profile| profile.status == 'Active'}
+    active_profiles = profiles.find_all{|profile| profile.status == 'Active'}
+    say_warning "No active #{type} profiles found." and abort if active_profiles.empty?
+    if name.nil?
+      profile = choose "Select a profile to download:", *active_profiles
+    else
+      profiles = profiles.find_all{|profile| profile.name == name}
+      say_warning "No active #{name} profile found." and abort if profiles.empty?
+      profile = profiles[0]
+    end
 
-    say_warning "No active #{type} profiles found." and abort if profiles.empty?
-    profile = choose "Select a profile to download:", *profiles
     if filename = agent.download_profile(profile)
       say_ok "Successfully downloaded: '#{filename}'"
     else
@@ -87,3 +107,4 @@ command :'profiles:download' do |c|
     end
   end
 end
+

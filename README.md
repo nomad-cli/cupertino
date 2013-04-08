@@ -1,6 +1,8 @@
 # Cupertino
 **CLI for the Apple Dev Center**
 
+> Due to an update by Apple to the Dev Center on April 7th, the current version of Cupertino does not work. For lack of a public API, Cupertino relied on screen-scraping to get its information, so a change in the structure of the site breaks the functionality of the CLI. We are working quickly to restore compatibility with the next release. Thanks for your patience.
+
 Automate administrative tasks that you would normally have to do through the Apple Dev Center websites. Life's too short to manage device identifiers by hand!
 
 > Cupertino is named after [Cupertino, CA](http://en.wikipedia.org/wiki/Cupertino,_California): home to Apple, Inc.'s world headquarters.  

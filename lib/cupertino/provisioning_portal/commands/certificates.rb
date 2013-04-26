@@ -10,17 +10,17 @@ command :'certificates:list' do |c|
     say_warning "No #{type} certificates found." and abort if certificates.empty?
 
     table = Terminal::Table.new do |t|
-      t << ["Name", "Provisioning Profiles", "Expiration Date", "Status"]
+      t << ["Name", "Type", "Expiration Date", "Status"]
       t.add_separator
       certificates.each do |certificate|
         status = case certificate.status
-                 when "Issued"
-                   certificate.status.green
-                 else
-                   certificate.status.red
+                   when "Issued"
+                     certificate.status.green
+                   else
+                     certificate.status.red
                  end
 
-        t << [certificate.name, certificate.provisioning_profiles.join("\n"), certificate.expiration_date, status]
+        t << [certificate.name, certificate.type, certificate.expiration_date, status]
       end
     end
 

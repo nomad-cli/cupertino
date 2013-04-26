@@ -47,11 +47,11 @@ command :'profiles:manage:devices' do |c|
       lines = ["# Comment / Uncomment Devices to Turn Off / On for Provisioning Profile"]
       lines += on.collect{|device| "#{device}"}
       lines += off.collect{|device| "# #{device}"}
-      result = ask_editor lines.join("\n")
+      (result = ask_editor lines.join("\n")) or abort("EDITOR undefined. Try run 'export EDITOR=vi'")
 
       devices = []
       result.split(/\n+/).each do |line|
-        next if /^\#/ === line
+        next if /^#/ === line
         components = line.split(/\s+/)
         device = Device.new
         device.udid = components.pop

@@ -4,6 +4,7 @@ require 'certified'
 module Cupertino
   module ProvisioningPortal
     class UnsuccessfulAuthenticationError < RuntimeError; end
+    class UnexpectedContentError < RuntimeError; end
 
     class Device < Struct.new(:name, :udid)
       def to_s
@@ -11,7 +12,7 @@ module Cupertino
       end
     end
 
-    class Certificate < Struct.new(:name, :type, :provisioning_profiles, :expiration_date, :status)
+    class Certificate < Struct.new(:name, :type, :expiration_date, :status, :download_url) #:provisioning_profiles,
       def to_s
         "#{self.name}"
       end
@@ -23,7 +24,7 @@ module Cupertino
       end
     end
 
-    class ProvisioningProfile < Struct.new(:name, :type, :app_id, :status)
+    class ProvisioningProfile < Struct.new(:name, :type, :app_id, :status, :download_url, :edit_url)
       def to_s
         "#{self.name}"
       end

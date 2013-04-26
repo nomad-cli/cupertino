@@ -127,9 +127,16 @@ module Cupertino
           form.radiobuttons.first.check()
           form.submit
 
-          form = page.form_with(:name => 'deviceSubmit') or raise UnexpectedContentError
-
-          form.submit
+          if form = page.form_with(:name => 'deviceSubmit')
+            form.method = 'POST'
+            form.field_with(:name => 'deviceNames').name = 'name'
+            form.field_with(:name => 'deviceNumbers').name = 'deviceNumber'
+            form.submit
+          elsif form = page.form_with(:name => 'deviceImport')
+            form.submit
+          else
+            raise UnexpectedContentError
+          end
 
         ensure
           file.close!

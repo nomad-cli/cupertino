@@ -55,15 +55,12 @@ _Opens an editor with a list of devices, each of which can be commented / uncomm
     Johnny Appleseed iPad 0123456789012345678901234567890123abcdef
     # Johnny Appleseed iPhone abcdef0123456789012345678901234567890123
 
-```sh
-$ ios profiles:add_devices MyApp_Development_Profile “Johnny Appleseed iPad”=0123456789012345678901234567890123abcdef “Johnny Appleseed iPhone”=abcdef0123456789012345678901234567890123
-```
+
+    $ ios profiles:devices:add MyApp_Development_Profile "Johnny Appleseed iPad"=0123456789012345678901234567890123abcdef "Johnny Appleseed iPhone"=abcdef0123456789012345678901234567890123
 
 _Adds (without an editor) a list of devices to a provisioning profile_
 
-```sh
-$ ios profiles:remove_devices MyApp_Development_Profile “Johnny Old iPad”=0123456789012345678901234567890123abcdef “Johnny Old iPhone”=abcdef0123456789012345678901234567890123
-```
+    $ ios profiles:devices:remove MyApp_Development_Profile "Johnny Old iPad"=0123456789012345678901234567890123abcdef "Johnny Old iPhone"=abcdef0123456789012345678901234567890123
 
 _Removes (without an editor) a list of devices from a provisioning profile_
 
@@ -100,8 +97,8 @@ _Removes (without an editor) a list of devices from a provisioning profile_
 - `devices:list`
 - `profiles:list`
 - `profiles:manage:devices`
-- `profiles:add_devices`
-- `profiles:remove_devices`
+- `profiles:manage:devices:add`
+- `profiles:manage:devices:remove`
 - `profiles:download`
 - `certificates:list [development|distribution]`
 - `certificates:download`

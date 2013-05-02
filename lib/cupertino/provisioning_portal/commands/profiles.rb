@@ -30,6 +30,26 @@ end
 
 alias_command :profiles, :'profiles:list'
 
+command :'profiles:download' do |c|
+  c.syntax = 'ios profiles:download'
+  c.summary = 'Downloads the Provisioning Profiles'
+  c.description = ''
+
+  c.action do |args, options|
+    type = args.first.downcase.to_sym rescue nil
+    profiles = try{agent.list_profiles(type ||= :development)}
+    profiles = profiles.find_all{|profile| profile.status == 'Active'}
+
+    say_warning "No active #{type} profiles found." and abort if profiles.empty?
+    profile = choose "Select a profile to download:", *profiles
+    if filename = agent.download_profile(profile)
+      say_ok "Successfully downloaded: '#{filename}'"
+    else
+      say_error "Could not download profile"
+    end
+  end
+end
+
 command :'profiles:manage:devices' do |c|
   c.syntax = 'ios profiles:manage:devices'
   c.summary = 'Manage active devices for a development provisioning profile'
@@ -66,7 +86,7 @@ command :'profiles:manage:devices' do |c|
   end
 end
 
-alias_command :'profiles:manage', :'profiles:manage:devices'
+alias_command :'profiles:devices', :'profiles:manage:devices'
 
 command :'profiles:manage:devices:add' do |c|
   c.syntax = 'ios profiles:manage:devices:add PROFILE_NAME DEVICE_NAME=DEVICE_ID [...]'
@@ -77,7 +97,7 @@ command :'profiles:manage:devices:add' do |c|
     profiles = try{agent.list_profiles(:development) + agent.list_profiles(:distribution)}
     profile = profiles.find {|profile| profile.name == args.first }
 
-    say_warning "No provisioning profiles named #{args.first} were found." and abort if profile.nil?
+    say_warning "No provisioning profiles named #{args.first} were found." and abort unless profile
 
     devices = []
     args[1..-1].each do |arg|
@@ -87,7 +107,7 @@ command :'profiles:manage:devices:add' do |c|
       device.udid = components.last
       devices << device
     end
-    
+
     agent.manage_devices_for_profile(profile) do |on, off|
       on + devices
     end
@@ -96,7 +116,7 @@ command :'profiles:manage:devices:add' do |c|
   end
 end
 
-alias_command :'profiles:add_devices', :'profiles:manage:devices:add'
+alias_command :'profiles:devices:add', :'profiles:manage:devices:add'
 
 command :'profiles:manage:devices:remove' do |c|
   c.syntax = 'ios profiles:manage:devices:remove PROFILE_NAME DEVICE_NAME=DEVICE_ID [...]'
@@ -106,8 +126,8 @@ command :'profiles:manage:devices:remove' do |c|
   c.action do |args, options|
     profiles = try{agent.list_profiles(:development) + agent.list_profiles(:distribution)}
     profile = profiles.find {|profile| profile.name == args.first }
-    
-    say_warning "No provisioning profiles named #{args.first} were found." and abort if profile.nil?
+
+    say_warning "No provisioning profiles named #{args.first} were found." and abort unless profile
 
     devices = []
     args[1..-1].each do |arg|
@@ -117,33 +137,13 @@ command :'profiles:manage:devices:remove' do |c|
       device.udid = components.last
       devices << device
     end
-    
+
     agent.manage_devices_for_profile(profile) do |on, off|
-      on.delete_if {|active| devices.any? {|inactive| inactive.udid == active.udid }}  
+      on.delete_if {|active| devices.any? {|inactive| inactive.udid == active.udid }}
     end
-    
+
     say_ok "Successfully removed devices from #{args.first}."
   end
 end
 
-alias_command :'profiles:remove_devices', :'profiles:manage:devices:remove'
-
-command :'profiles:download' do |c|
-  c.syntax = 'ios profiles:download'
-  c.summary = 'Downloads the Provisioning Profiles'
-  c.description = ''
-
-  c.action do |args, options|
-    type = args.first.downcase.to_sym rescue nil
-    profiles = try{agent.list_profiles(type ||= :development)}
-    profiles = profiles.find_all{|profile| profile.status == 'Active'}
-
-    say_warning "No active #{type} profiles found." and abort if profiles.empty?
-    profile = choose "Select a profile to download:", *profiles
-    if filename = agent.download_profile(profile)
-      say_ok "Successfully downloaded: '#{filename}'"
-    else
-      say_error "Could not download profile"
-    end
-  end
-end
+alias_command :'profiles:devices:remove', :'profiles:manage:devices:remove'

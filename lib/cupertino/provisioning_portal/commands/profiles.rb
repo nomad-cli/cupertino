@@ -68,6 +68,66 @@ end
 
 alias_command :'profiles:manage', :'profiles:manage:devices'
 
+command :'profiles:manage:devices:add' do |c|
+  c.syntax = 'ios profiles:manage:devices:add PROFILE_NAME DEVICE_NAME=DEVICE_ID [...]'
+  c.summary = 'Add active devices to a Provisioning Profile'
+  c.description = ''
+
+  c.action do |args, options|
+    profiles = try{agent.list_profiles(:development) + agent.list_profiles(:distribution)}
+    profile = profiles.find {|profile| profile.name == args.first }
+
+    say_warning "No provisioning profiles named #{args.first} were found." and abort if profile.nil?
+
+    devices = []
+    args[1..-1].each do |arg|
+      components = arg.strip.gsub(/\"/, '').split(/\=/)
+      device = Device.new
+      device.name = components.first
+      device.udid = components.last
+      devices << device
+    end
+    
+    agent.manage_devices_for_profile(profile) do |on, off|
+      on + devices
+    end
+
+    say_ok "Successfully added devices to #{args.first}."
+  end
+end
+
+alias_command :'profiles:add_devices', :'profiles:manage:devices:add'
+
+command :'profiles:manage:devices:remove' do |c|
+  c.syntax = 'ios profiles:manage:devices:remove PROFILE_NAME DEVICE_NAME=DEVICE_ID [...]'
+  c.summary = 'Remove active devices from a Provisioning Profile.'
+  c.description = ''
+
+  c.action do |args, options|
+    profiles = try{agent.list_profiles(:development) + agent.list_profiles(:distribution)}
+    profile = profiles.find {|profile| profile.name == args.first }
+    
+    say_warning "No provisioning profiles named #{args.first} were found." and abort if profile.nil?
+
+    devices = []
+    args[1..-1].each do |arg|
+      components = arg.strip.gsub(/\"/, '').split(/\=/)
+      device = Device.new
+      device.name = components.first
+      device.udid = components.last
+      devices << device
+    end
+    
+    agent.manage_devices_for_profile(profile) do |on, off|
+      on.delete_if {|active| devices.any? {|inactive| inactive.udid == active.udid }}  
+    end
+    
+    say_ok "Successfully removed devices from #{args.first}."
+  end
+end
+
+alias_command :'profiles:remove_devices', :'profiles:manage:devices:remove'
+
 command :'profiles:download' do |c|
   c.syntax = 'ios profiles:download'
   c.summary = 'Downloads the Provisioning Profiles'

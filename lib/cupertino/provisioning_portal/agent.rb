@@ -11,12 +11,12 @@ module Cupertino
         super
         self.user_agent_alias = 'Mac Safari'
 
-        pw = Security::InternetPassword.find(:server => Cupertino::HOSTNAME)
+        pw = Security::InternetPassword.find(:server => Cupertino::ProvisioningPortal::HOST)
         @username, @password = pw.attributes['acct'], pw.password if pw
       end
 
       def get(uri, parameters = [], referer = nil, headers = {})
-        uri = ::File.join("https://#{Cupertino::HOSTNAME}", uri) unless /^https?/ === uri
+        uri = ::File.join("https://#{Cupertino::ProvisioningPortal::HOST}", uri) unless /^https?/ === uri
 
         3.times do
           super(uri, parameters, referer, headers)

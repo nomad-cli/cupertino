@@ -4,6 +4,7 @@ require "cupertino"
 
 Gem::Specification.new do |s|
   s.name        = "cupertino"
+  s.license     = "MIT"
   s.authors     = ["Mattt Thompson"]
   s.email       = "m@mattt.me"
   s.homepage    = "http://mattt.me"
@@ -12,9 +13,6 @@ Gem::Specification.new do |s|
   s.summary     = "Cupertino"
   s.description = "A command-line interface for the iOS Provisioning Portal"
 
-  s.add_development_dependency "rspec", "~> 0.6.1"
-  s.add_development_dependency "rake",  "~> 0.9.2"
-
   s.add_dependency "commander", "~> 4.1.2"
   s.add_dependency "terminal-table", "~> 1.4.5"
   s.add_dependency "term-ansicolor", "~> 1.0.7"
@@ -22,6 +20,9 @@ Gem::Specification.new do |s|
   s.add_dependency "security", "~> 0.1.2"
   s.add_dependency "shenzhen", ">= 0.0.1"
   s.add_dependency "certified", ">= 0.1.0"
+
+  s.add_development_dependency "rspec"
+  s.add_development_dependency "rake"
 
   s.files         = Dir["./**/*"].reject { |file| file =~ /\.\/(bin|log|pkg|script|spec|test|vendor)/ }
   s.test_files    = `git ls-files -- {test,spec,features}/*`.split("\n")

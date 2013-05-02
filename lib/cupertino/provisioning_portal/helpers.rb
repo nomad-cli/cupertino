@@ -24,17 +24,14 @@ module Cupertino
             end
 
             def team
-              # we're working with radio buttons instead of a drop down menu
-              teams = page.form_with(:name => 'saveTeamSelection').radiobuttons
-              # create a dictionary of team.value -> team name
-              formatted_teams = {}
-              teams.each do |team|
-                # we can't use team.label as this only returns the last label
-                # Apple use two labels with the same for="", we want the first
-                formatted_teams[team.value] = page.search("label[for=\"#{team.dom_id}\"]").first.text.strip
+              teams_by_name = {}
+              page.form_with(:name => 'saveTeamSelection').radiobuttons.each do |radio|
+                name = page.search("label[for=\"#{radio.dom_id}\"]").first.text.strip
+                teams_by_name[name] = radio.value
               end
-              teamname = choose "Select a team:", *formatted_teams.values
-              @team ||= formatted_teams.key(teamname)
+
+              name = choose "Select a team:", *teams_by_name.keys
+              @team ||= teams_by_name[name]
             end
           end
         end

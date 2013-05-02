@@ -43,7 +43,7 @@ module Cupertino
                 when :distribution
                   "https://developer.apple.com/account/ios/certificate/certificateList.action?type=distribution"
                 else
-                raise ArgumentError, "Certificate type must be :development or :distribution"
+                  raise ArgumentError, "Certificate type must be :development or :distribution"
               end
 
         get(url)
@@ -68,7 +68,7 @@ module Cupertino
           certificate = Certificate.new
           certificate.name = row['name']
           certificate.type = type
-          certificate.download_url = 'https://developer.apple.com/account/ios/certificate/certificateContentDownload.action?displayId=' + row['certificateId'] + '&type=' + row['certificateTypeDisplayId']
+          certificate.download_url = "https://developer.apple.com/account/ios/certificate/certificateContentDownload.action?displayId=#{row['certificateId']}&type=#{row['certificateTypeDisplayId']}"
           certificate.expiration_date = row['expirationDateString']
           certificate.status = row['statusString']
           certificates << certificate
@@ -163,7 +163,7 @@ module Cupertino
                               '&type=limited'
                             when :distribution
                               '&type=production'
-                          end
+                            end
 
         get(profile_data_url)
         profile_data = page.content
@@ -176,8 +176,8 @@ module Cupertino
           profile.type = type
           profile.app_id = row['appId']['appIdId']
           profile.status = row['status']
-          profile.download_url = 'https://developer.apple.com/account/ios/profile/profileContentDownload.action?displayId=' + row['provisioningProfileId']
-          profile.edit_url = 'https://developer.apple.com/account/ios/profile/profileEdit.action?provisioningProfileId=' + row['provisioningProfileId']
+          profile.download_url = "https://developer.apple.com/account/ios/profile/profileContentDownload.action?displayId=#{row['provisioningProfileId']}"
+          profile.edit_url = "https://developer.apple.com/account/ios/profile/profileEdit.action?provisioningProfileId=#{row['provisioningProfileId']}"
           profiles << profile
         end
         profiles
@@ -243,17 +243,15 @@ module Cupertino
         app_ids = []
         parsed_bundle_data['appIds'].each do |row|
           app_id = AppID.new
-          app_id.bundle_seed_id = row['prefix'] + '.' + row['identifier']
+          app_id.bundle_seed_id = [row['prefix'], row['identifier']].join(".")
           app_id.description = row['name']
-
-          #TODO cautious about this part, requires testing
 
           app_id.development_properties, app_id.distribution_properties = [], []
           row['features'].each do |feature, value|
             if value == true
               app_id.development_properties << feature
-            elsif String === value && value != ''
-              app_id.development_properties << feature + ': ' + value
+            elsif value.kind_of?(String) && !value.empty?
+              app_id.development_properties << "#{feature}: #{value}"
             end
           end
 

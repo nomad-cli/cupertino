@@ -34,18 +34,18 @@ module Cupertino
                 formatted_teams[team.value] = page.search("label[for=\"#{team.dom_id}\"]").first.text.strip
               end
               teamname = choose "Select a team:", *formatted_teams.values
-              @team ||= formatted_teams.index(teamname)
+              @team ||= formatted_teams.key(teamname)
             end
           end
         end
 
         @agent
       end
-      
+
       def pluralize(n, singular, plural = nil)
         n.to_i == 1 ? "1 #{singular}" : "#{n} #{plural || singular + 's'}"
       end
-      
+
       def try
         return unless block_given?
 

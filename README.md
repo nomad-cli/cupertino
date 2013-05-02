@@ -1,11 +1,9 @@
 # Cupertino
 **CLI for the Apple Dev Center**
 
-> Due to an update by Apple to the Dev Center on April 7th, the current version of Cupertino does not work. For lack of a public API, Cupertino relied on screen-scraping to get its information, so a change in the structure of the site breaks the functionality of the CLI. We are working quickly to restore compatibility with the next release. Thanks for your patience.
-
 Automate administrative tasks that you would normally have to do through the Apple Dev Center websites. Life's too short to manage device identifiers by hand!
 
-> Cupertino is named after [Cupertino, CA](http://en.wikipedia.org/wiki/Cupertino,_California): home to Apple, Inc.'s world headquarters.  
+> Cupertino is named after [Cupertino, CA](http://en.wikipedia.org/wiki/Cupertino,_California): home to Apple, Inc.'s world headquarters.
 > It's part of a series of world-class command-line utilities for iOS development, which includes [Shenzhen](https://github.com/mattt/shenzhen) (Building & Distribution), [Houston](https://github.com/mattt/houston) (Push Notifications), [Venice](https://github.com/mattt/venice) (In-App Purchase Receipt Verification), and [Dubai](https://github.com/mattt/dubai) (Passbook pass generation).
 
 ## Installation
@@ -82,48 +80,6 @@ _Opens an editor with a list of devices, each of which can be commented / uncomm
     | Johnny Appleseed | iOS Team Provisioning Profile: * | Dec 23, 2012    | Issued |
     +------------------+----------------------------------+-----------------+--------+
 
-### Pass Type IDs
-
-    $ ios pass_type_ids:add pass.com.example.coupon.myExamplePass --description "My Example Pass Coupon"
-
-    Added pass.com.example.coupon.myExamplePass: My Example Pass Coupon
-
----
-
-    $ ios pass_type_ids:list
-
-    +------------+--------------------------------------------+--------------+-------------------+
-    | Card ID    | Identifier                                 | Description  | Pass Certificates |
-    +------------+--------------------------------------------+--------------+-------------------+
-    | WWWWWWWWWW | pass.com.example.coupon.myExamplePass      | Coupon       | None              |
-    | XXXXXXXXXX | pass.com.example.eventTicket.myExamplePass | Event Ticket | Pass Certificate  |
-    | YYYYYYYYYY | pass.com.example.movieTicket.myExamplePass | Movie Ticket | Pass Certificate  |
-    | ZZZZZZZZZZ | pass.com.example.test.001                  | Test         | Pass Certificate  |
-    +------------+--------------------------------------------+--------------+-------------------+
-
----
-
-    $ ios pass_type_ids:certificates:add pass.com.example.coupon.myExamplePass --csr /path/to/csr
-
-    Configured pass.com.example.coupon.myExamplePass. Apple is generating the certificate...
-    Certificate generated and is ready to be downloaded.
-
----
-
-    $ ios pass_type_ids:certificates:list pass.com.example.coupon.myExamplePass
-
-    +------------------+------------+-----------------+----------------+
-    | Name             | Status     | Expiration Date | Certificate ID |
-    +------------------+------------+-----------------+----------------+
-    | Pass Certificate | Configured | Nov 21, 2013    | AAAAAAAAAA     |
-    +------------------+------------+-----------------+----------------+
-
----
-
-    $ ios pass_type_ids:certificates:download pass.com.example.coupon.myExamplePass --certificate_id AAAAAAAAAA
-
-    Successfully downloaded: 'AAAAAAAAAA.cer'
-
 ## Commands
 
 - `login`
@@ -136,6 +92,11 @@ _Opens an editor with a list of devices, each of which can be commented / uncomm
 - `certificates:list [development|distribution]`
 - `certificates:download`
 - `app_ids:list`
+
+### Disabled Commands
+
+> With the latest updates to the Apple Developer Portal, the following functionality has been removed.
+
 - `pass_type_ids:list`
 - `pass_type_ids:add`
 - `pass_type_ids:certificates:list`

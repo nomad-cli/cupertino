@@ -14,7 +14,7 @@ module Cupertino
       end
     end
 
-    class Certificate < Struct.new(:name, :type, :expiration_date, :status, :download_url) #:provisioning_profiles,
+    class Certificate < Struct.new(:name, :type, :expiration_date, :status, :download_url)
       def to_s
         "#{self.name}"
       end

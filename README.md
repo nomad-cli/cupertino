@@ -1,7 +1,5 @@
 ![Cupertino](https://raw.github.com/mattt/nomad-cli.com/assets/cupertino-banner.png)
 
-**CLI for the Apple Dev Center**
-
 Automate administrative tasks that you would normally have to do through the Apple Dev Center websites. Life's too short to manage device identifiers by hand!
 
 > Cupertino is named after [Cupertino, CA](http://en.wikipedia.org/wiki/Cupertino,_California): home to Apple, Inc.'s world headquarters.

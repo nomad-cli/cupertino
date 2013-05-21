@@ -277,7 +277,6 @@ module Cupertino
 
       def select_team!
         if form = page.form_with(:name => 'saveTeamSelection')
-          # self.team now stores team ID, not name
           team_option = form.radiobutton_with(:value => self.team)
           team_option.check
 

@@ -9,8 +9,8 @@ command :'devices:list' do |c|
     number_of_devices = devices.compact.length
     number_of_additional_devices = devices.length - number_of_devices
 
-    title = "Listing #{pluralize(number_of_devices, 'device')}. "
-    title += "You can register #{pluralize(number_of_additional_devices, 'additional device')}." if number_of_additional_devices > 0
+    title = "Listing #{pluralize(number_of_devices, 'device')} "
+    title += "(You can register #{pluralize(number_of_additional_devices, 'additional device')})" if number_of_additional_devices > 0
 
     table = Terminal::Table.new :title => title do |t|
       t << ["Device Name", "Device Identifier"]
@@ -45,6 +45,6 @@ command :'devices:add' do |c|
 
     agent.add_devices(*devices)
 
-    say_ok "Added #{devices.length} #{devices.length == 1 ? 'device' : 'devices'}"
+    say_ok "Added #{pluralize(devices.length, 'device')}"
   end
 end

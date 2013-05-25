@@ -99,6 +99,7 @@ _Removes (without an editor) a list of devices from a provisioning profile_
 - `profiles:manage:devices:add`
 - `profiles:manage:devices:remove`
 - `profiles:download`
+- `profiles:download:all`
 - `certificates:list [development|distribution]`
 - `certificates:download`
 - `app_ids:list`

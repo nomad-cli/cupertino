@@ -74,7 +74,7 @@ module Cupertino
           certificates << certificate
         end
 
-        certificates
+		return certificates
       end
 
       def download_certificate(certificate)
@@ -83,7 +83,7 @@ module Cupertino
         self.pluggable_parser.default = Mechanize::Download
         download = get(certificate.download_url)
         download.save
-        download.filename
+        return download.filename
       end
 
       def list_devices
@@ -104,7 +104,7 @@ module Cupertino
           devices << device
         end
 
-        devices
+        return devices
       end
 
       def add_devices(*devices)
@@ -180,7 +180,7 @@ module Cupertino
           profile.edit_url = "https://developer.apple.com/account/ios/profile/profileEdit.action?provisioningProfileId=#{row['provisioningProfileId']}"
           profiles << profile
         end
-        profiles
+        return profiles
       end
 
       def download_profile(profile)
@@ -189,7 +189,8 @@ module Cupertino
         self.pluggable_parser.default = Mechanize::Download
         download = get(profile.download_url)
         download.save
-        download.filename
+		print "The provision profile name is " + download.filename + "\n"
+        return download.filename
       end
 
       def manage_devices_for_profile(profile)
@@ -262,7 +263,7 @@ module Cupertino
           app_ids << app_id
         end
 
-        app_ids
+        return app_ids
       end
 
       private

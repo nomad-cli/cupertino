@@ -1,12 +1,9 @@
+
 command :'profiles:list2' do |c|
-	#print "		profiles:list2 \n"
 	c.syntax = 'ios profiles:list [development|distribution]'
 	c.summary = 'Lists the Provisioning Profiles'
 	c.description = ''
 	
-	system	"security -v list-keychains -d user -s	~/Library/Keychains/portal.keychain ~/Library/Keychains/login.keychain /Library/Keychains/System.keychain	~/Library/Keychains/MainLicense.keychain"
-	system	"security -v unlock-keychain -p '' ~/Library/Keychains/portal.keychain"
-	system	"security -v default-keychain -d user -s ~/Library/Keychains/portal.keychain"
 
 	c.action do |args, options|
 		type = args.first.downcase.to_sym rescue nil
@@ -84,7 +81,7 @@ command :'profiles:download' do |c|
 		end
 end
 
-command :'profiles:manage:devicesall' do |c|
+command :'profiles:manage:devices' do |c|
 	c.syntax = 'ios profiles:manage:devices'
 	c.summary = 'Manage active devices for a development provisioning profile'
 	c.description = ''
@@ -127,42 +124,6 @@ command :'profiles:manage:devicesall' do |c|
 		
 			say_ok "Successfully managed devices #{type} #{profile}"
 		end
-end
-
-command :'profiles:manage:devices' do |c|
-  c.syntax = 'ios profiles:manage:devices'
-  c.summary = 'Manage active devices for a development provisioning profile'
-  c.description = ''
-
-  c.action do |args, options|
-    type = args.first.downcase.to_sym rescue nil
-    profiles = try{agent.list_profiles(type ||= :development)}
-
-    say_warning "No #{type} provisioning profiles found." and abort if profiles.empty?
-
-    profile = choose "Select a provisioning profile to manage:", *profiles
-
-    agent.manage_devices_for_profile(profile) do |on, off|
-      lines = ["# Comment / Uncomment Devices to Turn Off / On for Provisioning Profile"]
-      lines += on.collect{|device| "#{device}"}
-      lines += off.collect{|device| "# #{device}"}
-      (result = ask_editor lines.join("\n")) or abort("EDITOR undefined. Try run 'export EDITOR=vi'")
-
-      devices = []
-      result.split(/\n+/).each do |line|
-        next if /^#/ === line
-        components = line.split(/\s+/)
-        device = Device.new
-        device.udid = components.pop
-        device.name = components.join(" ")
-        devices << device
-      end
-
-      devices
-    end
-
-    say_ok "Successfully managed devices"
-  end
 end
 
 alias_command :'profiles:devices', :'profiles:manage:devices'
@@ -288,8 +249,8 @@ command :'profile.alldownload' do |c|
 	c.description = ''
 	
 		c.action do |args, options|
-			type = args.first.downcase.to_sym rescue nil
-			name = args[1] rescue nil
+			#type = args.first.downcase.to_sym rescue nil
+			#name = args[1] rescue nil
 	
 			profiles = try{agent.list_profiles(:development) + agent.list_profiles(:distribution)}
 	
@@ -303,8 +264,7 @@ command :'profile.alldownload' do |c|
 				provisonArray.length.times do |h|
 					print h.to_s + " " + provisonArray[h] + "\n"
 					name = provisonArray[h]
-					#type = "distribution"
-					print "type #{type}\n"
+					#print "type #{type}\n"
 					print "name #{name}\n"
 					profiles = try{agent.list_profiles(:development) + agent.list_profiles(:distribution)}
 					profiles = profiles.find_all{|profile| profile.name == name}
@@ -315,6 +275,10 @@ command :'profile.alldownload' do |c|
 					path_to_file = name + ".mobileprovision"
 					File.delete(path_to_file) if File.exist?(path_to_file)
 					
+					path_to_file1 = name + ".mobileprovision.zip"
+					File.delete(path_to_file1) if File.exist?(path_to_file1)
+		
+				
 						if filename = agent.download_profile(profile)
 							say_ok "Successfully downloaded: '#{filename}'"
 						else

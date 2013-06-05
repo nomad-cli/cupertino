@@ -153,6 +153,8 @@ module Cupertino
                 raise ArgumentError, 'Provisioning profile type must be :development or :distribution'
               end
 
+				self.pluggable_parser.default = Mechanize::File
+
         get(url)
 
         regex = /profileDataURL = "([^"]*)"/
@@ -164,9 +166,12 @@ module Cupertino
                             when :distribution
                               '&type=production'
                             end
+				self.pluggable_parser.default = Mechanize::File
 
         get(profile_data_url)
+				
         profile_data = page.content
+				
         parsed_profile_data = JSON.parse(profile_data)
 
         profiles = []
@@ -180,10 +185,12 @@ module Cupertino
           profile.edit_url = "https://developer.apple.com/account/ios/profile/profileEdit.action?provisioningProfileId=#{row['provisioningProfileId']}"
           profiles << profile
         end
+
         return profiles
       end
 
       def download_profile(profile)
+
         list_profiles(profile.type)
 
         self.pluggable_parser.default = Mechanize::Download
@@ -278,6 +285,7 @@ module Cupertino
 
       def select_team!
         if form = page.form_with(:name => 'saveTeamSelection')
+		  # self.team now stores team ID, not name
           team_option = form.radiobutton_with(:value => self.team)
           team_option.check
 

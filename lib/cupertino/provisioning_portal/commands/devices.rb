@@ -33,18 +33,39 @@ command :'devices:add' do |c|
 
   c.action do |args, options|
     say_error "Missing arguments, expected DEVICE_NAME=DEVICE_ID" and abort if args.nil? or args.empty?
-
+	listofDevice ||= Array.new
+		devices = try{agent.list_devices}
+				
+		  devices.compact.each do |device|
+			#puts [device.udid]
+			listofDevice.push(device.udid)
+		  end
+	
+	AddThisDeviceNow = ""
+	
     devices = []
     args.each do |arg|
       components = arg.strip.gsub(/"/, '').split(/\=/)
-      device = Device.new
-      device.name = components.first
-      device.udid = components.last
-      devices << device
+      AddThisDeviceNow = components.last
+		if listofDevice.include?(AddThisDeviceNow)
+			say_error  "Devices was already in License do not added device " + AddThisDeviceNow
+		else
+		  device = Device.new
+		  device.name = components.first
+		  device.udid = components.last
+		  devices << device
+		end
     end
+    
+  	
+	if devices.length > 0
+		say_ok "Add these devices now"
+   		puts devices
+   		agent.add_devices(*devices)
 
-    agent.add_devices(*devices)
-
-    say_ok "Added #{devices.length} #{devices.length == 1 ? 'device' : 'devices'}"
+    	say_ok "Added #{devices.length} #{devices.length == 1 ? 'device' : 'devices'}"
+	else
+		say_error  "Devices was found do not added device"
+    end
   end
 end

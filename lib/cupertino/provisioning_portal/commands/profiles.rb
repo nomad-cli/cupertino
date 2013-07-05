@@ -99,16 +99,19 @@ command :'profiles:manage:devices:add' do |c|
 
     say_warning "No provisioning profiles named #{args.first} were found." and abort unless profile
 
-    devices = []
-    args[1..-1].each do |arg|
-      components = arg.strip.gsub(/\"/, '').split(/\=/)
-      device = Device.new
-      device.name = components.first
-      device.udid = components.last
-      devices << device
-    end
-
     agent.manage_devices_for_profile(profile) do |on, off|
+      device_names = args[1..-1].collect {|arg| arg.sub /\=.*/, '' }  
+      devices = []
+      
+      device_names.each do |device_name|
+        matched_device = (on + off).find {|device| device.name === device_name }
+        say_warning "No device named #{device_name} was found." and abort unless matched_device
+        device = Device.new
+        device.name = device_name
+        device.udid = matched_device.udid
+        devices << device
+      end
+      
       on + devices
     end
 
@@ -129,17 +132,10 @@ command :'profiles:manage:devices:remove' do |c|
 
     say_warning "No provisioning profiles named #{args.first} were found." and abort unless profile
 
-    devices = []
-    args[1..-1].each do |arg|
-      components = arg.strip.gsub(/\"/, '').split(/\=/)
-      device = Device.new
-      device.name = components.first
-      device.udid = components.last
-      devices << device
-    end
+    device_names = args[1..-1].collect {|arg| arg.gsub /\=.*/, '' }
 
     agent.manage_devices_for_profile(profile) do |on, off|
-      on.delete_if {|active| devices.any? {|inactive| inactive.udid == active.udid }}
+      on.delete_if {|active| device_names.any? {|device_name| active.name === device_name }}
     end
 
     say_ok "Successfully removed devices from #{args.first}."

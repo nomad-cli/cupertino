@@ -1,6 +1,7 @@
 require 'mechanize'
 require 'security'
 require 'json'
+require 'logger'
 
 module Cupertino
   module ProvisioningPortal
@@ -13,6 +14,12 @@ module Cupertino
 
         pw = Security::InternetPassword.find(:server => Cupertino::ProvisioningPortal::HOST)
         @username, @password = pw.attributes['acct'], pw.password if pw
+      end
+
+      def log_level(level)
+        log = Logger.new(STDOUT)
+        log.level = level
+        @log = log
       end
 
       def get(uri, parameters = [], referer = nil, headers = {})

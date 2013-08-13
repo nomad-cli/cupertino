@@ -24,8 +24,9 @@ module Cupertino
             end
 
             def team
-              name = team_name || choose("Select a team:", *teams_by_name.keys)
-              @team = teams_by_name[name]
+              team_map = teams_by_name
+              name = team_name || choose("Select a team:", *team_map.keys)
+              @team = team_map[name]
             end
 
             def teams_by_name

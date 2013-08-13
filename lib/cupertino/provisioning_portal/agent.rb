@@ -18,7 +18,7 @@ module Cupertino
       def get(uri, parameters = [], referer = nil, headers = {})
         uri = ::File.join("https://#{Cupertino::ProvisioningPortal::HOST}", uri) unless /^https?/ === uri
 
-        3.times do
+        3.times do |i|
           super(uri, parameters, referer, headers)
 
           return page unless page.respond_to?(:title)
@@ -272,6 +272,9 @@ module Cupertino
           form.theAccountName = self.username
           form.theAccountPW = self.password
           form.submit
+        end
+        if !page.search('.dserror').empty?
+          raise UnsuccessfulAuthenticationError, page.search('.dserror')[0].text
         end
       end
 

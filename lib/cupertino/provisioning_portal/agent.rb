@@ -226,7 +226,7 @@ module Cupertino
           end
         end
 
-        form.method = 'POST'
+        form.method = 'GET'
         form.submit
       end
 

@@ -13,12 +13,14 @@ command :'devices:list' do |c|
     title += "(You can register #{pluralize(number_of_additional_devices, 'additional device')})" if number_of_additional_devices > 0
 
     table = Terminal::Table.new :title => title do |t|
-      t << ["Device Name", "Device Identifier"]
+      t << ["Device Name", "Device Identifier", "Enabled"]
       t.add_separator
       devices.compact.each do |device|
-        t << [device.name, device.udid]
+        t << [device.name, device.udid, device.enabled]
       end
     end
+
+    table.align_column 2, :center
 
     puts table
   end

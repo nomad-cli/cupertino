@@ -30,17 +30,6 @@ module Cupertino
               name = team_name || choose("Select a team:", *team_map.keys)
               @team = team_map[name]
             end
-
-            def teams_by_name
-              team_map = {}
-              
-              page.form_with(:name => 'saveTeamSelection').radiobuttons.each do |radio|
-                name = page.search("label[for=\"#{radio.dom_id}\"]").first.text.strip
-                team_map[name] = radio.value
-              end
-
-              team_map
-            end
           end
         end
 

@@ -267,6 +267,19 @@ module Cupertino
         app_ids
       end
 
+      def teams_by_name
+        team_map = {}
+        if (page.nil?)
+          get('https://developer.apple.com/account/selectTeam.action')
+        end
+        page.form_with(:name => 'saveTeamSelection').radiobuttons.each do |radio|
+          name = page.search("label[for=\"#{radio.dom_id}\"]").first.text.strip
+          team_map[name] = radio.value
+        end
+
+        team_map
+      end
+
       private
 
       def login!
@@ -282,6 +295,9 @@ module Cupertino
 
       def select_team!
         if form = page.form_with(:name => 'saveTeamSelection')
+          if (@team_name && @team.nil?)
+            @team = teams_by_name[@team_name]
+          end
           team_option = form.radiobutton_with(:value => self.team)
           team_option.check
 

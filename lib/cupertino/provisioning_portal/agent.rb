@@ -19,12 +19,6 @@ module Cupertino
         @username, @password = pw.attributes['acct'], pw.password if pw
       end
 
-      def log_level(level)
-        log = Logger.new(STDOUT)
-        log.level = level
-        @log = log
-      end
-
       def use_proxy(arg)
         puts "Using proxy #{arg}"
         puts '-----------'
@@ -55,15 +49,43 @@ module Cupertino
         (uri =~ /^(https?|ftp|file):/) ? uri : "http://#{uri}"
       end
 
-      def get(uri, parameters = [], referer = nil, headers = {})
+      def log_level(level)
+        log = Logger.new(STDOUT)
+        log.level = level
+        @log = log
+      end
+
+      def post(uri, query = {}, headers = {})
         uri = ::File.join("https://#{Cupertino::ProvisioningPortal::HOST}", uri) unless /^https?/ === uri
 
+#TODO could rescue Net::HTTP::Persistent::Error here, and if there's a proxy, suggest that the proxy is not available
+        3.times do
+          super(uri, query, headers)
+
+          return page unless page.respond_to?(:title)
+
+          case page.title
+            when /Sign in with your Apple ID/
+              login! and redo
+            when /Select Team/
+              select_team! and redo
+            else
+              return page
+          end
+        end
+
+        raise UnsuccessfulAuthenticationError
+      end
+
+      def get(uri, parameters = [], referer = nil, headers = {}) #TODO make a post() version of this
+        uri = ::File.join("https://#{Cupertino::ProvisioningPortal::HOST}", uri) unless /^https?/ === uri
+
+#TODO could rescue Net::HTTP::Persistent::Error here, and if there's a proxy, suggest that the proxy is not available
         3.times do
           super(uri, parameters, referer, headers)
 
           return page unless page.respond_to?(:title)
 
-#TODO could rescue Net::HTTP::Persistent::Error here, and if there's a proxy, suggest that the proxy is not available
           case page.title
             when /Sign in with your Apple ID/
               login! and redo
@@ -186,17 +208,18 @@ module Cupertino
       end
 
       def list_profiles(type = :development)
-        url = case type
+        url = 'https://developer.apple.com/account/ios/profile/profileList.action'
+        filter = case type
               when :development
-                'https://developer.apple.com/account/ios/profile/profileList.action?type=limited'
+                'limited'
               when :distribution
-                'https://developer.apple.com/account/ios/profile/profileList.action?type=production'
+                'production'
               else
                 raise ArgumentError, 'Provisioning profile type must be :development or :distribution'
               end
 
-				self.pluggable_parser.default = Mechanize::File
-        get(url)
+        self.pluggable_parser.default = Mechanize::File
+        post(url, "type" => filter)
 
         regex = /profileDataURL = "([^"]*)"/
         profile_data_url = (page.body.match regex or raise UnexpectedContentError)[1]
@@ -207,10 +230,9 @@ module Cupertino
                             when :distribution
                               '&type=production'
                             end
-#				self.pluggable_parser.default = Mechanize::File
 
         post(profile_data_url)
-				
+
         profile_data = page.content
         parsed_profile_data = JSON.parse(profile_data)
 
@@ -220,9 +242,11 @@ module Cupertino
           profile.name = row['name']
           profile.type = type
           profile.app_id = row['appId']['appIdId']
+          profile.id = row['provisioningProfileId']
           profile.status = row['status']
+          profile.uuid = row['UUID']
           profile.download_url = "https://developer.apple.com/account/ios/profile/profileContentDownload.action?displayId=#{row['provisioningProfileId']}"
-          profile.edit_url = "https://developer.apple.com/account/ios/profile/profileEdit.action?provisioningProfileId=#{row['provisioningProfileId']}"
+          profile.edit_url = "https://developer.apple.com/account/ios/profile/profileEdit.action" #"?provisioningProfileId=#{row['provisioningProfileId']}"
           profiles << profile
         end
         profiles
@@ -232,18 +256,27 @@ module Cupertino
         list_profiles(profile.type)
 
         self.pluggable_parser.default = Mechanize::Download
-        download = get(profile.download_url)
+        download = post(profile.download_url) #XXX double-check this against firefox
+		system ("if [ -f ~/" + download.filename + " ];then rm ~/" + download.filename + ";fi")
+		#print "The FILE is " + download.filename + "\n"
         download.save
-		print "The provision profile name is " + download.filename + "\n"
         download.filename
       end
 
       def manage_devices_for_profile(profile)
         raise ArgumentError unless block_given?
+        filter = case profile.type
+                   when :development
+                     'limited'
+                   when :distribution
+                     'production'
+                   else
+                     raise ArgumentError, 'Provisioning profile type must be :development or :distribution'
+                 end
 
-        list_profiles(profile.type)
-
-        post(profile.edit_url)
+        #list_profiles(profile.type) # do we need this?
+        post(profile.edit_url, {'type'=> filter,
+                               'provisioningProfileId'=> profile.id}) #are cookies also getting sent?
 
         on, off = [], []
         page.search('dd.selectDevices div.rows div').each do |row|
@@ -272,7 +305,11 @@ module Cupertino
           end
         end
 
-        form.method = 'GET'
+        form.method = 'POST'
+
+        adssuv = cookies.find{|cookie| cookie.name == 'adssuv'}
+        form.add_field!('adssuv-value', Mechanize::Util::uri_unescape(adssuv.value))
+        form.add_field!('type', filter)
         form.submit
       end
 

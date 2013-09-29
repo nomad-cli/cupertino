@@ -95,10 +95,12 @@ _Removes (without an editor) a list of devices from a provisioning profile_
 - `devices:add`
 - `devices:list`
 - `profiles:list`
+- `profile.alladd`
 - `profiles:manage:devices`
 - `profiles:manage:devices:add`
 - `profiles:manage:devices:remove`
 - `profiles:download`
+- `profiles:download:all`
 - `certificates:list [development|distribution]`
 - `certificates:download`
 - `app_ids:list`

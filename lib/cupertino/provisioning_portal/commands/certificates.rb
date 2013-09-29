@@ -34,7 +34,7 @@ command :'certificates:download' do |c|
   c.syntax = 'ios certificates:download [development|distribution]'
   c.summary = 'Downloads the Certificates'
   c.description = ''
-  
+
   c.action do |args, options|
     type = args.first.downcase.to_sym rescue nil
     certificates = try{agent.list_certificates(type ||= :development)}

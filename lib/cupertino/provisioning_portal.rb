@@ -26,9 +26,9 @@ module Cupertino
       end
     end
 
-    class ProvisioningProfile < Struct.new(:name, :type, :app_id, :status, :download_url, :edit_url)
+    class ProvisioningProfile < Struct.new(:name, :type, :uuid, :app_id, :id, :status, :download_url, :edit_url)
       def to_s
-        "#{self.name}"
+        "#{self.name} #{self.uuid}"
       end
     end
 

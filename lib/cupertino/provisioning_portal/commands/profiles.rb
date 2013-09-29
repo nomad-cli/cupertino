@@ -42,11 +42,11 @@ command :'profiles:download' do |c|
 
     say_warning "No active #{type} profiles found." and abort if profiles.empty?
     profile = choose "Select a profile to download:", *profiles
-    if filename = agent.download_profile(profile)
-      say_ok "Successfully downloaded: '#{filename}'"
-    else
-      say_error "Could not download profile"
-    end
+		if filename = agent.download_profile(profile)
+		  say_ok "Successfully downloaded: '#{filename}'"
+		else
+		  say_error "Could not download profile"
+		end
   end
 end
 
@@ -183,7 +183,7 @@ command :'profiles:manage:devices' do |c|
       devices
     end
 
-    say_ok "Successfully managed devices"
+			say_ok "Successfully managed devices #{type} #{profile}"
   end
 end
 

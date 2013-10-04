@@ -50,6 +50,27 @@ command :'profiles:download' do |c|
   end
 end
 
+command :'profiles:download:all' do |c|
+  c.syntax = 'ios profiles:download:all [development|distribution]'
+  c.summary = 'Downloads all the active Provisioning Profiles'
+  c.description = ''
+
+  c.action do |args, options|
+    type = args.first.downcase.to_sym rescue nil
+    profiles = try{agent.list_profiles(type ||= :development)}
+    profiles = profiles.find_all{|profile| profile.status == 'Active'}
+
+    say_warning "No active #{type} profiles found." and abort if profiles.empty?
+    profiles.each do |profile|
+      if filename = agent.download_profile(profile)
+        say_ok "Successfully downloaded: '#{filename}'"
+      else
+        say_error "Could not download profile: '#{profile.name}'"
+      end
+    end
+  end
+end
+
 command :'profiles:manage:devices' do |c|
   c.syntax = 'ios profiles:manage:devices'
   c.summary = 'Manage active devices for a development provisioning profile'

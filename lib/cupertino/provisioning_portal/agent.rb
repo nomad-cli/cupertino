@@ -101,6 +101,7 @@ module Cupertino
           device = Device.new
           device.name = row['name']
           device.udid = row['deviceNumber'] # Apple doesn't provide the UDID on this page anymore
+	  device.enabled = (row['status'] == 'c' ? 'Y' : 'N')
           devices << device
         end
 

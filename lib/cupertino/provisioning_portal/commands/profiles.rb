@@ -121,16 +121,13 @@ command :'profiles:manage:devices:add' do |c|
     say_warning "No provisioning profiles named #{args.first} were found." and abort unless profile
 
     agent.manage_devices_for_profile(profile) do |on, off|
-      device_names = args[1..-1].collect {|arg| arg.sub /\=.*/, '' }  
+      names = args[1..-1].collect{|arg| arg.sub /\=.*/, ''}
       devices = []
       
-      device_names.each do |device_name|
-        matched_device = (on + off).find {|device| device.name === device_name }
-        say_warning "No device named #{device_name} was found." and abort unless matched_device
-        device = Device.new
-        device.name = device_name
-        device.udid = matched_device.udid
-        devices << device
+      names.each do |name|
+        device = (on + off).detect{|d| d.name === name}
+        say_warning "No device named #{name} was found." and abort unless device
+        devices << Device.new(:name => name, :udid => device.udid)
       end
       
       on + devices
@@ -153,10 +150,10 @@ command :'profiles:manage:devices:remove' do |c|
 
     say_warning "No provisioning profiles named #{args.first} were found." and abort unless profile
 
-    device_names = args[1..-1].collect {|arg| arg.gsub /\=.*/, '' }
+    names = args[1..-1].collect{|arg| arg.gsub /\=.*/, ''}
 
     agent.manage_devices_for_profile(profile) do |on, off|
-      on.delete_if {|active| device_names.any? {|device_name| active.name === device_name }}
+      on.delete_if{|active| names.include?(active.name)}}
     end
 
     say_ok "Successfully removed devices from #{args.first}."

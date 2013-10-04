@@ -24,14 +24,14 @@ module Cupertino
             end
 
             def team
-              teams_by_name = {}
+              teams = []
               page.form_with(:name => 'saveTeamSelection').radiobuttons.each do |radio|
                 name = page.search("label[for=\"#{radio.dom_id}\"]").first.text.strip
-                teams_by_name[name] = radio.value
+                teams << [name, radio.value]
               end
 
-              name = choose "Select a team:", *teams_by_name.keys
-              @team ||= teams_by_name[name]
+              name = choose "Select a team:", *teams.collect(&:first)
+              @team ||= teams.detect{|e| e.first == name}.last
             end
           end
         end

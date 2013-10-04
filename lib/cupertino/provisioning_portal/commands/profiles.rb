@@ -129,7 +129,7 @@ command :'profiles:manage:devices:add' do |c|
       names.each do |name|
         device = (on + off).detect{|d| d.name === name}
         say_warning "No device named #{name} was found." and abort unless device
-        devices << Device.new(:name => name, :udid => device.udid)
+        devices << Device.new(name, device.udid)
       end
       
       on + devices

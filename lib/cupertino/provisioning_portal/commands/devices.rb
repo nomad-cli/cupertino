@@ -42,6 +42,7 @@ command :'devices:add' do |c|
       device = Device.new
       device.name = components.first
       device.udid = components.last
+      say_warning "Invalid UDID: #{device.udid}" and next unless /\h{40}/ === device.udid
       devices << device
     end
 

@@ -24,12 +24,12 @@ module Cupertino
           return page unless page.respond_to?(:title)
 
           case page.title
-            when /Sign in with your Apple ID/
-              login! and redo
-            when /Select Team/
-              select_team! and redo
-            else
-              return page
+          when /Sign in with your Apple ID/
+            login! and redo
+          when /Select Team/
+            select_team! and redo
+          else
+            return page
           end
         end
 
@@ -38,13 +38,13 @@ module Cupertino
 
       def list_certificates(type = :development)
         url = case type
-                when :development
-                  "https://developer.apple.com/account/ios/certificate/certificateList.action?type=development"
-                when :distribution
-                  "https://developer.apple.com/account/ios/certificate/certificateList.action?type=distribution"
-                else
-                  raise ArgumentError, "Certificate type must be :development or :distribution"
-              end
+        when :development
+          "https://developer.apple.com/account/ios/certificate/certificateList.action?type=development"
+        when :distribution
+          "https://developer.apple.com/account/ios/certificate/certificateList.action?type=distribution"
+        else
+          raise ArgumentError, "Certificate type must be :development or :distribution"
+        end
 
         get(url)
 
@@ -101,7 +101,7 @@ module Cupertino
           device = Device.new
           device.name = row['name']
           device.udid = row['deviceNumber'] # Apple doesn't provide the UDID on this page anymore
-	  device.enabled = (row['status'] == 'c' ? 'Y' : 'N')
+          device.enabled = (row['status'] == 'c' ? 'Y' : 'N')
           devices << device
         end
 

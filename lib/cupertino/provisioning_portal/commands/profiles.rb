@@ -80,7 +80,9 @@ command :'profiles:manage:devices' do |c|
     type = args.first.downcase.to_sym rescue nil
     profiles = try{agent.list_profiles(type ||= :development)}
 
-    say_warning "No #{type} provisioning profiles found." and abort if profiles.empty?
+    profiles.delete_if{|profile| profile.status == "Invalid"}
+
+    say_warning "No valid #{type} provisioning profiles found." and abort if profiles.empty?
 
     profile = choose "Select a provisioning profile to manage:", *profiles
 

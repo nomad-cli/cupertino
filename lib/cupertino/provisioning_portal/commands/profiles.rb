@@ -153,7 +153,7 @@ command :'profiles:manage:devices:remove' do |c|
     names = args[1..-1].collect{|arg| arg.gsub /\=.*/, ''}
 
     agent.manage_devices_for_profile(profile) do |on, off|
-      on.delete_if{|active| names.include?(active.name)}}
+      on.delete_if{|active| names.include?(active.name)}
     end
 
     say_ok "Successfully removed devices from #{args.first}."

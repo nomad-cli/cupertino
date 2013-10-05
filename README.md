@@ -99,7 +99,8 @@ _Removes (without an editor) a list of devices from a provisioning profile_
 - `profiles:manage:devices:add`
 - `profiles:manage:devices:remove`
 - `profiles:download`
-- `certificates:list [development|distribution]`
+- `profiles:download:all`
+- `certificates:list`
 - `certificates:download`
 - `app_ids:list`
 
@@ -112,6 +113,10 @@ _Removes (without an editor) a list of devices from a provisioning profile_
 - `pass_type_ids:certificates:list`
 - `pass_type_ids:certificates:add`
 - `pass_type_ids:certificates:download`
+
+## Proxies
+
+Cupertino will access the provisioning portal through a proxy if the `HTTP_PROXY` environment variable is set, with optional credentials `HTTP_PROXY_USER` and `HTTP_PROXY_PASSWORD`.
 
 ## Contact
 

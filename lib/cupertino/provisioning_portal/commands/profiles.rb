@@ -1,11 +1,13 @@
 command :'profiles:list' do |c|
-  c.syntax = 'ios profiles:list [development|distribution]'
+  c.syntax = 'ios profiles:list'
   c.summary = 'Lists the Provisioning Profiles'
   c.description = ''
 
+  c.option '-t', '--type [TYPE]', [:development, :distribution], "Type of profile"
+
   c.action do |args, options|
-    type = args.first.downcase.to_sym rescue nil
-    profiles = try{agent.list_profiles(type ||= :development)}
+    type = options.type || :development
+    profiles = try{agent.list_profiles(type)}
 
     say_warning "No #{type} provisioning profiles found." and abort if profiles.empty?
 
@@ -31,21 +33,51 @@ end
 alias_command :profiles, :'profiles:list'
 
 command :'profiles:download' do |c|
-  c.syntax = 'ios profiles:download'
+  c.syntax = 'ios profiles:download [PROFILE_NAME]'
   c.summary = 'Downloads the Provisioning Profiles'
   c.description = ''
 
+  c.option '-t', '--type [TYPE]', [:development, :distribution], "Type of profile"
+
   c.action do |args, options|
-    type = args.first.downcase.to_sym rescue nil
-    profiles = try{agent.list_profiles(type ||= :development)}
-    profiles = profiles.find_all{|profile| profile.status == 'Active'}
+    type = options.type || :development
+    profiles = try{agent.list_profiles(type)}
+    profiles = profiles.select{|profile| profile.status == 'Active'}
 
     say_warning "No active #{type} profiles found." and abort if profiles.empty?
-    profile = choose "Select a profile to download:", *profiles
+
+    name = args.join(" ")
+    unless profile = profiles.detect{|p| p.name == name}
+      profile = choose "Select a profile to download:", *profiles
+    end
+
     if filename = agent.download_profile(profile)
       say_ok "Successfully downloaded: '#{filename}'"
     else
       say_error "Could not download profile"
+    end
+  end
+end
+
+command :'profiles:download:all' do |c|
+  c.syntax = 'ios profiles:download:all'
+  c.summary = 'Downloads all the active Provisioning Profiles'
+  c.description = ''
+
+  c.option '-t', '--type [TYPE]', [:development, :distribution], "Type of profile"
+
+  c.action do |args, options|
+    type = options.type || :development
+    profiles = try{agent.list_profiles(type)}
+    profiles = profiles.select{|profile| profile.status == 'Active'}
+
+    say_warning "No active #{type} profiles found." and abort if profiles.empty?
+    profiles.each do |profile|
+      if filename = agent.download_profile(profile)
+        say_ok "Successfully downloaded: '#{filename}'"
+      else
+        say_error "Could not download profile: '#{profile.name}'"
+      end
     end
   end
 end
@@ -55,11 +87,15 @@ command :'profiles:manage:devices' do |c|
   c.summary = 'Manage active devices for a development provisioning profile'
   c.description = ''
 
-  c.action do |args, options|
-    type = args.first.downcase.to_sym rescue nil
-    profiles = try{agent.list_profiles(type ||= :development)}
+  c.option '-t', '--type [TYPE]', [:development, :distribution], "Type of profile"
 
-    say_warning "No #{type} provisioning profiles found." and abort if profiles.empty?
+  c.action do |args, options|
+    type = options.type || :development
+    profiles = try{agent.list_profiles(type)}
+
+    profiles.delete_if{|profile| profile.status == "Invalid"}
+
+    say_warning "No valid #{type} provisioning profiles found." and abort if profiles.empty?
 
     profile = choose "Select a provisioning profile to manage:", *profiles
 
@@ -99,16 +135,16 @@ command :'profiles:manage:devices:add' do |c|
 
     say_warning "No provisioning profiles named #{args.first} were found." and abort unless profile
 
-    devices = []
-    args[1..-1].each do |arg|
-      components = arg.strip.gsub(/\"/, '').split(/\=/)
-      device = Device.new
-      device.name = components.first
-      device.udid = components.last
-      devices << device
-    end
-
     agent.manage_devices_for_profile(profile) do |on, off|
+      names = args[1..-1].collect{|arg| arg.sub /\=.*/, ''}
+      devices = []
+      
+      names.each do |name|
+        device = (on + off).detect{|d| d.name === name}
+        say_warning "No device named #{name} was found." and abort unless device
+        devices << Device.new(name, device.udid)
+      end
+      
       on + devices
     end
 
@@ -129,17 +165,10 @@ command :'profiles:manage:devices:remove' do |c|
 
     say_warning "No provisioning profiles named #{args.first} were found." and abort unless profile
 
-    devices = []
-    args[1..-1].each do |arg|
-      components = arg.strip.gsub(/\"/, '').split(/\=/)
-      device = Device.new
-      device.name = components.first
-      device.udid = components.last
-      devices << device
-    end
+    names = args[1..-1].collect{|arg| arg.gsub /\=.*/, ''}
 
     agent.manage_devices_for_profile(profile) do |on, off|
-      on.delete_if {|active| devices.any? {|inactive| inactive.udid == active.udid }}
+      on.delete_if{|active| names.include?(active.name)}
     end
 
     say_ok "Successfully removed devices from #{args.first}."

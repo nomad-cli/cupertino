@@ -8,9 +8,9 @@ module Cupertino
     class UnsuccessfulAuthenticationError < RuntimeError; end
     class UnexpectedContentError < RuntimeError; end
 
-    class Device < Struct.new(:name, :udid)
+    class Device < Struct.new(:name, :udid, :enabled)
       def to_s
-        "#{self.name} #{self.udid}"
+        "#{self.name} #{self.udid} #{self.enabled}"
       end
     end
 

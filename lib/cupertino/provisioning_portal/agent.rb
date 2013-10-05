@@ -1,5 +1,6 @@
 require 'mechanize'
 require 'security'
+require 'uri'
 require 'json'
 
 module Cupertino
@@ -9,7 +10,16 @@ module Cupertino
 
       def initialize
         super
+
         self.user_agent_alias = 'Mac Safari'
+
+        if ENV['HTTP_PROXY']
+          uri = URI.parse(ENV['HTTP_PROXY'])
+          user = ENV['HTTP_PROXY_USER'] if ENV['HTTP_PROXY_USER']
+          password = ENV['HTTP_PROXY_PASSWORD'] if ENV['HTTP_PROXY_PASSWORD']
+
+          set_proxy(uri.host, uri.port, user || uri.user, password || uri.password)
+        end
 
         pw = Security::InternetPassword.find(:server => Cupertino::ProvisioningPortal::HOST)
         @username, @password = pw.attributes['acct'], pw.password if pw
@@ -24,12 +34,12 @@ module Cupertino
           return page unless page.respond_to?(:title)
 
           case page.title
-            when /Sign in with your Apple ID/
-              login! and redo
-            when /Select Team/
-              select_team! and redo
-            else
-              return page
+          when /Sign in with your Apple ID/
+            login! and redo
+          when /Select Team/
+            select_team! and redo
+          else
+            return page
           end
         end
 
@@ -38,13 +48,13 @@ module Cupertino
 
       def list_certificates(type = :development)
         url = case type
-                when :development
-                  "https://developer.apple.com/account/ios/certificate/certificateList.action?type=development"
-                when :distribution
-                  "https://developer.apple.com/account/ios/certificate/certificateList.action?type=distribution"
-                else
-                  raise ArgumentError, "Certificate type must be :development or :distribution"
-              end
+        when :development
+          "https://developer.apple.com/account/ios/certificate/certificateList.action?type=development"
+        when :distribution
+          "https://developer.apple.com/account/ios/certificate/certificateList.action?type=distribution"
+        else
+          raise ArgumentError, "Certificate type must be :development or :distribution"
+        end
 
         get(url)
 
@@ -102,6 +112,7 @@ module Cupertino
           device = Device.new
           device.name = row['name']
           device.udid = row['deviceNumber'] # Apple doesn't provide the UDID on this page anymore
+          device.enabled = (row['status'] == 'c' ? 'Y' : 'N')
           devices << device
         end
 
@@ -154,6 +165,7 @@ module Cupertino
                 raise ArgumentError, 'Provisioning profile type must be :development or :distribution'
               end
 
+        self.pluggable_parser.default = Mechanize::File
         get(url)
 
         regex = /profileDataURL = "([^"]*)"/

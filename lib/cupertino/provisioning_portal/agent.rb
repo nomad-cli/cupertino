@@ -240,6 +240,8 @@ module Cupertino
           end
         end
 
+        cookie = cookies.detect {|x| x.name == 'adssuv'}
+        form['adssuv-value'] = Mechanize::Util::uri_unescape(cookie.value)
         form.method = 'POST'
         form.submit
       end

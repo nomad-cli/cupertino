@@ -1,6 +1,8 @@
 # Monkey Patch Commander::UI to alias password to avoid conflicts
-module Commander::UI
-  alias :pw :password
+if defined? Commander
+  module Commander::UI
+    alias :pw :password
+  end
 end
 
 class String
@@ -24,14 +26,9 @@ module Cupertino
             end
 
             def team
-              teams = []
-              page.form_with(:name => 'saveTeamSelection').radiobuttons.each do |radio|
-                name = page.search("label[for=\"#{radio.dom_id}\"]").first.text.strip
-                teams << [name, radio.value]
-              end
-
-              name = choose "Select a team:", *teams.collect(&:first)
-              @team ||= teams.detect{|e| e.first == name}.last
+              team_map = teams_by_name
+              name = team_name || choose("Select a team:", *team_map.keys)
+              @team = team_map[name]
             end
           end
         end

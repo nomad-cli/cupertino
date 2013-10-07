@@ -6,7 +6,7 @@ require 'json'
 module Cupertino
   module ProvisioningPortal
     class Agent < ::Mechanize
-      attr_accessor :username, :password, :team
+      attr_accessor :username, :password, :team, :team_name
 
       def initialize
         super
@@ -28,7 +28,7 @@ module Cupertino
       def get(uri, parameters = [], referer = nil, headers = {})
         uri = ::File.join("https://#{Cupertino::ProvisioningPortal::HOST}", uri) unless /^https?/ === uri
 
-        3.times do
+        3.times do |i|
           super(uri, parameters, referer, headers)
 
           return page unless page.respond_to?(:title)
@@ -240,6 +240,8 @@ module Cupertino
           end
         end
 
+        cookie = cookies.detect {|x| x.name == 'adssuv'}
+        form['adssuv-value'] = Mechanize::Util::uri_unescape(cookie.value)
         form.method = 'POST'
         form.submit
       end
@@ -279,6 +281,19 @@ module Cupertino
         app_ids
       end
 
+      def teams_by_name
+        team_map = {}
+        if (page.nil?)
+          get('https://developer.apple.com/account/selectTeam.action')
+        end
+        page.form_with(:name => 'saveTeamSelection').radiobuttons.each do |radio|
+          name = page.search("label[for=\"#{radio.dom_id}\"]").first.text.strip
+          team_map[name] = radio.value
+        end
+
+        team_map
+      end
+
       private
 
       def login!
@@ -287,10 +302,16 @@ module Cupertino
           form.theAccountPW = self.password
           form.submit
         end
+        if !page.search('.dserror').empty?
+          raise UnsuccessfulAuthenticationError, page.search('.dserror')[0].text
+        end
       end
 
       def select_team!
         if form = page.form_with(:name => 'saveTeamSelection')
+          if (@team_name && @team.nil?)
+            @team = teams_by_name[@team_name]
+          end
           team_option = form.radiobutton_with(:value => self.team)
           team_option.check
 

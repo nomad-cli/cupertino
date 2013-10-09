@@ -30,8 +30,13 @@ module Cupertino
                 teams << [name, radio.value]
               end
 
-              name = choose "Select a team:", *teams.collect(&:first)
-              @team ||= teams.detect{|e| e.first == name}.last
+              @team_name ||= choose "Select a team:", *teams.collect(&:first)
+              if team = teams.detect{|e| e.first == @team_name}
+                @team = team.last
+              else
+                team_names = teams.map { |t| "\"#{t.first}\"" }.join(', ')
+                say_error "Team should be one of the following: #{team_names}" and abort
+              end
             end
           end
         end

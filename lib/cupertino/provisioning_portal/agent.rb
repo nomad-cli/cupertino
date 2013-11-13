@@ -2,6 +2,7 @@ require 'mechanize'
 require 'security'
 require 'uri'
 require 'json'
+require 'logger'
 
 module Cupertino
   module ProvisioningPortal
@@ -12,6 +13,9 @@ module Cupertino
         super
 
         self.user_agent_alias = 'Mac Safari'
+        
+        self.log ||= Logger.new(STDOUT)
+        self.log.level = Logger::ERROR
 
         if ENV['HTTP_PROXY']
           uri = URI.parse(ENV['HTTP_PROXY'])
@@ -23,6 +27,11 @@ module Cupertino
 
         pw = Security::InternetPassword.find(:server => Cupertino::ProvisioningPortal::HOST)
         @username, @password = pw.attributes['acct'], pw.password if pw
+      end
+
+      def log_level=(level)
+        self.log ||= Logger.new(STDOUT)
+        self.log.level = level
       end
 
       def get(uri, parameters = [], referer = nil, headers = {})

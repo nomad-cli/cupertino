@@ -29,11 +29,6 @@ module Cupertino
         @username, @password = pw.attributes['acct'], pw.password if pw
       end
 
-      def log_level=(level)
-        self.log ||= Logger.new(STDOUT)
-        self.log.level = level
-      end
-
       def get(uri, parameters = [], referer = nil, headers = {})
         uri = ::File.join("https://#{Cupertino::ProvisioningPortal::HOST}", uri) unless /^https?/ === uri
 

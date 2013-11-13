@@ -3,11 +3,11 @@ command :'profiles:list' do |c|
   c.summary = 'Lists the Provisioning Profiles'
   c.description = ''
 
-  c.option '-t', '--type [TYPE]', [:development, :distribution], "Type of profile"
+  c.option '--type [TYPE]', [:development, :distribution], "Type of profile (defaults to :development)"
 
   c.action do |args, options|
-    type = options.type || :development
-    profiles = try{agent.list_profiles(type)}
+    type = options.type.downcase.to_sym if options.type
+    profiles = try{agent.list_profiles(type || :development)}
 
     say_warning "No #{type} provisioning profiles found." and abort if profiles.empty?
 
@@ -37,11 +37,11 @@ command :'profiles:download' do |c|
   c.summary = 'Downloads the Provisioning Profiles'
   c.description = ''
 
-  c.option '-t', '--type [TYPE]', [:development, :distribution], "Type of profile"
+  c.option '--type [TYPE]', [:development, :distribution], "Type of profile (defaults to :development)"
 
   c.action do |args, options|
-    type = options.type || :development
-    profiles = try{agent.list_profiles(type)}
+    type = options.type.downcase.to_sym if options.type
+    profiles = try{agent.list_profiles(type || :development)}
     profiles = profiles.select{|profile| profile.status == 'Active'}
 
     say_warning "No active #{type} profiles found." and abort if profiles.empty?
@@ -64,11 +64,11 @@ command :'profiles:download:all' do |c|
   c.summary = 'Downloads all the active Provisioning Profiles'
   c.description = ''
 
-  c.option '-t', '--type [TYPE]', [:development, :distribution], "Type of profile"
+  c.option '--type [TYPE]', [:development, :distribution], "Type of profile (defaults to :development)"
 
   c.action do |args, options|
-    type = options.type || :development
-    profiles = try{agent.list_profiles(type)}
+    type = options.type.downcase.to_sym if options.type
+    profiles = try{agent.list_profiles(type || :development)}
     profiles = profiles.select{|profile| profile.status == 'Active'}
 
     say_warning "No active #{type} profiles found." and abort if profiles.empty?
@@ -87,11 +87,11 @@ command :'profiles:manage:devices' do |c|
   c.summary = 'Manage active devices for a development provisioning profile'
   c.description = ''
 
-  c.option '-t', '--type [TYPE]', [:development, :distribution], "Type of profile"
+  c.option '--type [TYPE]', [:development, :distribution], "Type of profile (defaults to :development)"
 
   c.action do |args, options|
-    type = options.type || :development
-    profiles = try{agent.list_profiles(type)}
+    type = options.type.downcase.to_sym if options.type
+    profiles = try{agent.list_profiles(type || :development)}
 
     profiles.delete_if{|profile| profile.status == "Invalid"}
 

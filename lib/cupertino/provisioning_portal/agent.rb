@@ -300,7 +300,7 @@ module Cupertino
 
       def select_team!
         if form = page.form_with(:name => 'saveTeamSelection')
-          team_option = form.radiobutton_with(:value => self.team)
+          team_option = form.radiobutton_with(:value => self.team_id)
           team_option.check
 
           button = form.button_with(:name => 'action:saveTeamSelection!save')

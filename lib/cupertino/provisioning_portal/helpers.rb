@@ -23,15 +23,30 @@ module Cupertino
               @password ||= pw "Password:"
             end
 
-            def team
+            def team_id
               teams = []
+
               page.form_with(:name => 'saveTeamSelection').radiobuttons.each do |radio|
-                name = page.search("label[for=\"#{radio.dom_id}\"]").first.text.strip
+                primary = page.search(".label-primary[for=\"#{radio.dom_id}\"]").first.text.strip
+                secondary = page.search(".label-secondary[for=\"#{radio.dom_id}\"]").first.text.strip
+                team_id = radio.value
+                name = "#{primary}, #{secondary} (#{team_id})"
                 teams << [name, radio.value]
               end
 
-              name = choose "Select a team:", *teams.collect(&:first)
-              @team ||= teams.detect{|e| e.first == name}.last
+              team_names = teams.collect(&:first)
+              team_ids   = teams.collect(&:last)
+
+              if @team.nil?
+                selected_team_name = choose "Select a team:", *team_names
+                teams.detect { |t| t.first == selected_team_name }.last
+              elsif team_ids.member? @team
+                @team
+              elsif team = teams.detect { |t| t.first.start_with?(@team) }
+                team.last
+              else
+                say_error "Team should be a name or identifier" and abort
+              end
             end
           end
         end

@@ -26,7 +26,9 @@ module Cupertino
             def team
               teams = []
               page.form_with(:name => 'saveTeamSelection').radiobuttons.each do |radio|
-                name = page.search("label[for=\"#{radio.dom_id}\"]").first.text.strip
+                primary = page.search(".label-primary[for=\"#{radio.dom_id}\"]").first.text.strip
+                secondary = page.search(".label-secondary[for=\"#{radio.dom_id}\"]").first.text.strip
+                name = "#{primary}, #{secondary}"
                 teams << [name, radio.value]
               end
 

@@ -3,7 +3,7 @@ command :'profiles:list' do |c|
   c.summary = 'Lists the Provisioning Profiles'
   c.description = ''
 
-  c.option '--type [TYPE]', [:development, :distribution], "Type of profile (defaults to development)"
+  c.option '--type [TYPE]', [:development, :distribution], "Type of profile (development or distribution; defaults to development)"
 
   c.action do |args, options|
     type = options.type.downcase.to_sym if options.type
@@ -37,7 +37,7 @@ command :'profiles:download' do |c|
   c.summary = 'Downloads the Provisioning Profiles'
   c.description = ''
 
-  c.option '--type [TYPE]', [:development, :distribution], "Type of profile (defaults to development)"
+  c.option '--type [TYPE]', [:development, :distribution], "Type of profile (development or distribution; defaults to development)"
 
   c.action do |args, options|
     type = options.type.downcase.to_sym if options.type
@@ -64,7 +64,7 @@ command :'profiles:download:all' do |c|
   c.summary = 'Downloads all the active Provisioning Profiles'
   c.description = ''
 
-  c.option '--type [TYPE]', [:development, :distribution], "Type of profile (defaults to development)"
+  c.option '--type [TYPE]', [:development, :distribution], "Type of profile (development or distribution; defaults to development)"
 
   c.action do |args, options|
     type = options.type.downcase.to_sym if options.type
@@ -87,7 +87,7 @@ command :'profiles:manage:devices' do |c|
   c.summary = 'Manage active devices for a development provisioning profile'
   c.description = ''
 
-  c.option '--type [TYPE]', [:development, :distribution], "Type of profile (defaults to development)"
+  c.option '--type [TYPE]', [:development, :distribution], "Type of profile (development or distribution; defaults to development)"
 
   c.action do |args, options|
     type = options.type.downcase.to_sym if options.type

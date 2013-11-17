@@ -1,4 +1,6 @@
 include Cupertino::ProvisioningPortal
+
+require 'cupertino/provisioning_portal/helpers'
 include Cupertino::ProvisioningPortal::Helpers
 
 global_option('-u', '--username USER', 'Username') { |arg| agent.username = arg unless arg.nil? }

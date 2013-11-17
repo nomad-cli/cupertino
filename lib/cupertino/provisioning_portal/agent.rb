@@ -7,7 +7,11 @@ require 'logger'
 module Cupertino
   module ProvisioningPortal
     class Agent < ::Mechanize
-      attr_accessor :username, :password, :team
+      attr_accessor :username, :password, :team_id
+
+      # Maintain backward compatibility
+      alias_method :team, :team_id
+      alias_method :team=, :team_id=
 
       def initialize
         super

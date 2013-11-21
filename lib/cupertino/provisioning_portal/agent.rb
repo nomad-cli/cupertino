@@ -57,9 +57,9 @@ module Cupertino
       def list_certificates(type = :development)
         url = case type
         when :development
-          "https://developer.apple.com/account/ios/certificate/certificateList.action?type=development"
+          "https://developer.apple.com/account/mac/certificate/certificateList.action?type=development"
         when :distribution
-          "https://developer.apple.com/account/ios/certificate/certificateList.action?type=distribution"
+          "https://developer.apple.com/account/mac/certificate/certificateList.action?type=distribution"
         else
           raise ArgumentError, "Certificate type must be :development or :distribution"
         end
@@ -86,7 +86,7 @@ module Cupertino
           certificate = Certificate.new
           certificate.name = row['name']
           certificate.type = type
-          certificate.download_url = "https://developer.apple.com/account/ios/certificate/certificateContentDownload.action?displayId=#{row['certificateId']}&type=#{row['certificateTypeDisplayId']}"
+          certificate.download_url = "https://developer.apple.com/account/mac/certificate/certificateContentDownload.action?displayId=#{row['certificateId']}&type=#{row['certificateTypeDisplayId']}"
           certificate.expiration_date = row['expirationDateString']
           certificate.status = row['statusString']
           certificates << certificate
@@ -105,7 +105,7 @@ module Cupertino
       end
 
       def list_devices
-        get('https://developer.apple.com/account/ios/device/deviceList.action')
+        get('https://developer.apple.com/account/mac/device/deviceList.action')
 
         regex = /deviceDataURL = "([^"]*)"/
         device_data_url = (page.body.match regex or raise UnexpectedContentError)[1]
@@ -121,6 +121,7 @@ module Cupertino
           device.name = row['name']
           device.udid = row['deviceNumber'] # Apple doesn't provide the UDID on this page anymore
           device.enabled = (row['status'] == 'c' ? 'Y' : 'N')
+          device.deviceId = row['deviceId']
           devices << device
         end
 
@@ -130,7 +131,7 @@ module Cupertino
       def add_devices(*devices)
         return if devices.empty?
 
-        get('https://developer.apple.com/account/ios/device/deviceCreate.action')
+        get('https://developer.apple.com/account/mac/device/deviceCreate.action')
 
         begin
           file = Tempfile.new(%w(devices .txt))
@@ -166,9 +167,9 @@ module Cupertino
       def list_profiles(type = :development)
         url = case type
               when :development
-                'https://developer.apple.com/account/ios/profile/profileList.action?type=limited'
+                'https://developer.apple.com/account/mac/profile/profileList.action?type=limited'
               when :distribution
-                'https://developer.apple.com/account/ios/profile/profileList.action?type=production'
+                'https://developer.apple.com/account/mac/profile/profileList.action?type=production'
               else
                 raise ArgumentError, 'Provisioning profile type must be :development or :distribution'
               end
@@ -198,8 +199,8 @@ module Cupertino
           profile.type = type
           profile.app_id = row['appId']['appIdId']
           profile.status = row['status']
-          profile.download_url = "https://developer.apple.com/account/ios/profile/profileContentDownload.action?displayId=#{row['provisioningProfileId']}"
-          profile.edit_url = "https://developer.apple.com/account/ios/profile/profileEdit.action?provisioningProfileId=#{row['provisioningProfileId']}"
+          profile.download_url = "https://developer.apple.com/account/mac/profile/profileContentDownload.action?displayId=#{row['provisioningProfileId']}"
+          profile.edit_url = "https://developer.apple.com/account/mac/profile/profileEdit.action?provisioningProfileId=#{row['provisioningProfileId']}"
           profiles << profile
         end
         profiles
@@ -217,6 +218,13 @@ module Cupertino
       def manage_devices_for_profile(profile)
         raise ArgumentError unless block_given?
 
+		#Fetch devices and organize into dictionary by deviceId.
+		deviceList = list_devices()
+		deviceDictionary = Hash.new
+		deviceList.each { |thisDevice| 
+			deviceDictionary[thisDevice.deviceId] = thisDevice
+		}
+
         list_profiles(profile.type)
 
         get(profile.edit_url)
@@ -225,9 +233,8 @@ module Cupertino
         page.search('dd.selectDevices div.rows div').each do |row|
           checkbox = row.search('input[type="checkbox"]').first
 
-          device = Device.new
-          device.name = row.search('span.title').text rescue nil
-          device.udid = checkbox['value'] rescue nil
+		  #Retrieve the device for this checkbox from the device dictionary.
+          device = deviceDictionary[checkbox['value']]
 
           if checkbox['checked']
             on << device
@@ -237,11 +244,12 @@ module Cupertino
         end
 
         devices = yield on, off
-
+		adssuv = cookies.find{|cookie| cookie.name == 'adssuv'}
         form = page.form_with(:name => 'profileEdit') or raise UnexpectedContentError
+    	form.add_field!('adssuv-value', Mechanize::Util::uri_unescape(adssuv.value))
         form.checkboxes_with(:name => 'deviceIds').each do |checkbox|
           checkbox.check
-          if devices.detect{|device| device.udid == checkbox['value']}
+ 		  if devices.detect{|device| device.deviceId == checkbox['value']}
             checkbox.check
           else
             checkbox.uncheck
@@ -253,7 +261,7 @@ module Cupertino
       end
 
       def list_app_ids
-        get('https://developer.apple.com/account/ios/identifiers/bundle/bundleList.action')
+        get('https://developer.apple.com/account/mac/identifiers/bundle/bundleList.action')
 
         regex = /bundleDataURL = "([^"]*)"/
         bundle_data_url = (page.body.match regex or raise UnexpectedContentError)[1]

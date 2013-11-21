@@ -121,6 +121,7 @@ module Cupertino
           device.name = row['name']
           device.udid = row['deviceNumber'] # Apple doesn't provide the UDID on this page anymore
           device.enabled = (row['status'] == 'c' ? 'Y' : 'N')
+          device.deviceId = row['deviceId']
           devices << device
         end
 
@@ -217,6 +218,13 @@ module Cupertino
       def manage_devices_for_profile(profile)
         raise ArgumentError unless block_given?
 
+		#Fetch devices and organize into dictionary by deviceId.
+		deviceList = list_devices()
+		deviceDictionary = Hash.new
+		deviceList.each { |thisDevice| 
+			deviceDictionary[thisDevice.deviceId] = thisDevice
+		}
+
         list_profiles(profile.type)
 
         get(profile.edit_url)
@@ -225,9 +233,8 @@ module Cupertino
         page.search('dd.selectDevices div.rows div').each do |row|
           checkbox = row.search('input[type="checkbox"]').first
 
-          device = Device.new
-          device.name = row.search('span.title').text rescue nil
-          device.udid = checkbox['value'] rescue nil
+		  #Retrieve the device for this checkbox from the device dictionary.
+          device = deviceDictionary[checkbox['value']]
 
           if checkbox['checked']
             on << device
@@ -237,11 +244,12 @@ module Cupertino
         end
 
         devices = yield on, off
-
+		adssuv = cookies.find{|cookie| cookie.name == 'adssuv'}
         form = page.form_with(:name => 'profileEdit') or raise UnexpectedContentError
+    	form.add_field!('adssuv-value', Mechanize::Util::uri_unescape(adssuv.value))
         form.checkboxes_with(:name => 'deviceIds').each do |checkbox|
           checkbox.check
-          if devices.detect{|device| device.udid == checkbox['value']}
+ 		  if devices.detect{|device| device.deviceId == checkbox['value']}
             checkbox.check
           else
             checkbox.uncheck

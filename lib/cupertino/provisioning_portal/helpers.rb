@@ -37,12 +37,12 @@ module Cupertino
               team_names = teams.collect(&:first)
               team_ids   = teams.collect(&:last)
 
-              if @team.nil?
+              if self.team.nil?
                 selected_team_name = choose "Select a team:", *team_names
                 teams.detect { |t| t.first == selected_team_name }.last
-              elsif team_ids.member? @team
-                @team
-              elsif team = teams.detect { |t| t.first.start_with?(@team) }
+              elsif team_ids.member? self.team
+                self.team
+              elsif team = teams.detect { |t| t.first.start_with?(self.team) }
                 team.last
               else
                 say_error "Team should be a name or identifier" and abort

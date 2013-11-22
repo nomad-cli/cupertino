@@ -101,8 +101,8 @@ command :'profiles:manage:devices' do |c|
 
     agent.manage_devices_for_profile(profile) do |on, off|
       lines = ["# Comment / Uncomment Devices to Turn Off / On for Provisioning Profile"]
-      lines += on.collect{|device| "#{device}"}
-      lines += off.collect{|device| "# #{device}"}
+      lines += on.collect{|device| "#{device.name} #{device.device_id}"}
+      lines += off.collect{|device| "# #{device.name} #{device.device_id}"}
       (result = ask_editor lines.join("\n")) or abort("EDITOR undefined. Try run 'export EDITOR=vi'")
 
       devices = []
@@ -110,7 +110,7 @@ command :'profiles:manage:devices' do |c|
         next if /^#/ === line
         components = line.split(/\s+/)
         device = Device.new
-        device.udid = components.pop
+        device.device_id = components.pop
         device.name = components.join(" ")
         devices << device
       end

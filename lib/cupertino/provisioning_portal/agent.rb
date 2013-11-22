@@ -17,7 +17,7 @@ module Cupertino
         super
 
         self.user_agent_alias = 'Mac Safari'
-        
+
         self.log ||= Logger.new(STDOUT)
         self.log.level = Logger::ERROR
 
@@ -119,8 +119,8 @@ module Cupertino
         parsed_device_data['devices'].each do |row|
           device = Device.new
           device.name = row['name']
-          device.udid = row['deviceNumber'] # Apple doesn't provide the UDID on this page anymore
           device.enabled = (row['status'] == 'c' ? 'Y' : 'N')
+          device.device_id = row['deviceId']
           devices << device
         end
 
@@ -202,6 +202,7 @@ module Cupertino
           profile.edit_url = "https://developer.apple.com/account/ios/profile/profileEdit.action?provisioningProfileId=#{row['provisioningProfileId']}"
           profiles << profile
         end
+
         profiles
       end
 
@@ -217,17 +218,14 @@ module Cupertino
       def manage_devices_for_profile(profile)
         raise ArgumentError unless block_given?
 
-        list_profiles(profile.type)
+        devices = list_devices
 
         get(profile.edit_url)
 
         on, off = [], []
         page.search('dd.selectDevices div.rows div').each do |row|
           checkbox = row.search('input[type="checkbox"]').first
-
-          device = Device.new
-          device.name = row.search('span.title').text rescue nil
-          device.udid = checkbox['value'] rescue nil
+          device = devices.detect{|device| device.device_id == checkbox['value']}
 
           if checkbox['checked']
             on << device
@@ -240,13 +238,15 @@ module Cupertino
 
         form = page.form_with(:name => 'profileEdit') or raise UnexpectedContentError
         form.checkboxes_with(:name => 'deviceIds').each do |checkbox|
-          checkbox.check
-          if devices.detect{|device| device.udid == checkbox['value']}
+          if devices.detect{|device| device.device_id == checkbox['value']}
             checkbox.check
           else
             checkbox.uncheck
           end
         end
+
+        adssuv = cookies.find{|cookie| cookie.name == 'adssuv'}
+        form.add_field!('adssuv-value', Mechanize::Util::uri_unescape(adssuv.value))
 
         form.method = 'POST'
         form.submit

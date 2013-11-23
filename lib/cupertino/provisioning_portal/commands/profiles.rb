@@ -6,8 +6,8 @@ command :'profiles:list' do |c|
   c.option '--type [TYPE]', [:development, :distribution], "Type of profile (development or distribution; defaults to development)"
 
   c.action do |args, options|
-    type = options.type.downcase.to_sym if options.type
-    profiles = try{agent.list_profiles(type || :development)}
+    type = (options.type.downcase.to_sym if options.type) || :development
+    profiles = try{agent.list_profiles(type)}
 
     say_warning "No #{type} provisioning profiles found." and abort if profiles.empty?
 
@@ -40,16 +40,13 @@ command :'profiles:download' do |c|
   c.option '--type [TYPE]', [:development, :distribution], "Type of profile (development or distribution; defaults to development)"
 
   c.action do |args, options|
-    type = options.type.downcase.to_sym if options.type
-    profiles = try{agent.list_profiles(type || :development)}
+    type = (options.type.downcase.to_sym if options.type) || :development
+    profiles = try{agent.list_profiles(type)}
     profiles = profiles.select{|profile| profile.status == 'Active'}
 
     say_warning "No active #{type} profiles found." and abort if profiles.empty?
 
-    name = args.join(" ")
-    unless profile = profiles.detect{|p| p.name == name}
-      profile = choose "Select a profile to download:", *profiles
-    end
+    profile = profiles.find{|p| profile.name == args.join(" ")} || choose("Select a profile:", *profiles)
 
     if filename = agent.download_profile(profile)
       say_ok "Successfully downloaded: '#{filename}'"
@@ -67,8 +64,8 @@ command :'profiles:download:all' do |c|
   c.option '--type [TYPE]', [:development, :distribution], "Type of profile (development or distribution; defaults to development)"
 
   c.action do |args, options|
-    type = options.type.downcase.to_sym if options.type
-    profiles = try{agent.list_profiles(type || :development)}
+    type = (options.type.downcase.to_sym if options.type) || :development
+    profiles = try{agent.list_profiles(type)}
     profiles = profiles.select{|profile| profile.status == 'Active'}
 
     say_warning "No active #{type} profiles found." and abort if profiles.empty?
@@ -83,21 +80,20 @@ command :'profiles:download:all' do |c|
 end
 
 command :'profiles:manage:devices' do |c|
-  c.syntax = 'ios profiles:manage:devices'
+  c.syntax = 'ios profiles:manage:devices [PROFILE_NAME]'
   c.summary = 'Manage active devices for a development provisioning profile'
   c.description = ''
 
   c.option '--type [TYPE]', [:development, :distribution], "Type of profile (development or distribution; defaults to development)"
 
   c.action do |args, options|
-    type = options.type.downcase.to_sym if options.type
-    profiles = try{agent.list_profiles(type || :development)}
-
+    type = (options.type.downcase.to_sym if options.type) || :development
+    profiles = try{agent.list_profiles(type)}
     profiles.delete_if{|profile| profile.status == "Invalid"}
 
     say_warning "No valid #{type} provisioning profiles found." and abort if profiles.empty?
 
-    profile = choose "Select a provisioning profile to manage:", *profiles
+    profile = profiles.find{|p| p.name == args.first} || choose("Select a profile:", *profiles)
 
     agent.manage_devices_for_profile(profile) do |on, off|
       lines = ["# Comment / Uncomment Devices to Turn Off / On for Provisioning Profile"]
@@ -125,30 +121,35 @@ end
 alias_command :'profiles:devices', :'profiles:manage:devices'
 
 command :'profiles:manage:devices:add' do |c|
-  c.syntax = 'ios profiles:manage:devices:add PROFILE_NAME DEVICE_NAME=DEVICE_ID [...]'
+  c.syntax = 'ios profiles:manage:devices:add [PROFILE_NAME] DEVICE_NAME=DEVICE_ID [...]'
   c.summary = 'Add active devices to a Provisioning Profile'
   c.description = ''
 
   c.action do |args, options|
     profiles = try{agent.list_profiles(:development) + agent.list_profiles(:distribution)}
-    profile = profiles.find {|profile| profile.name == args.first }
+    profile = profiles.find{|p| p.name == args.first} || choose("Select a profile:", *profiles)
 
-    say_warning "No provisioning profiles named #{args.first} were found." and abort unless profile
+    names = args[1..-1].select{|arg| /\=/ === arg}.collect{|arg| arg.sub /\=.*/, ''}
+    devices = []
 
     agent.manage_devices_for_profile(profile) do |on, off|
-      names = args[1..-1].collect{|arg| arg.sub /\=.*/, ''}
-      devices = []
+      names.each_with_index do |name, idx|
+        next if idx == 0 and name == profile.name
 
-      names.each do |name|
         device = (on + off).detect{|d| d.name === name}
-        say_warning "No device named #{name} was found." and abort unless device
+        say_warning "No device named #{name} was found." unless device
         devices << Device.new(name, device.udid)
       end
 
       on + devices
     end
 
-    say_ok "Successfully added devices to #{args.first}."
+    case devices.length
+    when 0
+      say_warning "No devices were added"
+    else
+      say_ok "Successfully added #{pluralize(devices.length, 'device', 'devices')} to #{profile}."
+    end
   end
 end
 
@@ -161,17 +162,23 @@ command :'profiles:manage:devices:remove' do |c|
 
   c.action do |args, options|
     profiles = try{agent.list_profiles(:development) + agent.list_profiles(:distribution)}
-    profile = profiles.find {|profile| profile.name == args.first }
+    profile = profiles.find{|p| p.name == args.first} || choose("Select a profile:", *profiles)
 
     say_warning "No provisioning profiles named #{args.first} were found." and abort unless profile
 
-    names = args[1..-1].collect{|arg| arg.gsub /\=.*/, ''}
+    names = args.collect{|arg| arg.gsub /\=.*/, ''}
 
+    devices = []
     agent.manage_devices_for_profile(profile) do |on, off|
-      on.delete_if{|active| names.include?(active.name)}
+      devices = on.delete_if{|device| names.include?(device.name)}
     end
 
-    say_ok "Successfully removed devices from #{args.first}."
+    case devices.length
+    when 0
+      say_warning "No devices were removed"
+    else
+      say_ok "Successfully removed #{pluralize(devices.length, 'device', 'devices')} from #{profile}."
+    end
   end
 end
 

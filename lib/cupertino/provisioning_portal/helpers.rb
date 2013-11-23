@@ -24,29 +24,23 @@ module Cupertino
             end
 
             def team_id
-              teams = []
+              unless @team_id
+                teams = []
+                page.form_with(:name => 'saveTeamSelection').radiobuttons.each do |radio|
+                  name = page.search(".label-primary[for=\"#{radio.dom_id}\"]").first.text.strip
+                  programs = page.search(".label-secondary[for=\"#{radio.dom_id}\"]").first.text.strip.split(/\,\s+/)
+                  team_id = radio.value
+                  teams << Team.new(name, programs, radio.value)
+                end
 
-              page.form_with(:name => 'saveTeamSelection').radiobuttons.each do |radio|
-                primary = page.search(".label-primary[for=\"#{radio.dom_id}\"]").first.text.strip
-                secondary = page.search(".label-secondary[for=\"#{radio.dom_id}\"]").first.text.strip
-                team_id = radio.value
-                name = "#{primary}, #{secondary} (#{team_id})"
-                teams << [name, radio.value]
+                unless team = teams.detect{|t| t.name == @team || t.identifier == @team}
+                  team = choose "Select a team:", *teams
+                end
+
+                @team_id = team.identifier
               end
 
-              team_names = teams.collect(&:first)
-              team_ids   = teams.collect(&:last)
-
-              if @team.nil?
-                selected_team_name = choose "Select a team:", *team_names
-                teams.detect { |t| t.first == selected_team_name }.last
-              elsif team_ids.member? @team
-                @team
-              elsif team = teams.detect { |t| t.first.start_with?(@team) }
-                team.last
-              else
-                say_error "Team should be a name or identifier" and abort
-              end
+              @team_id
             end
           end
         end

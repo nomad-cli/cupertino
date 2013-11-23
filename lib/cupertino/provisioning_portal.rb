@@ -43,6 +43,12 @@ module Cupertino
         "#{self.certificate_id}"
       end
     end
+
+    class Team < Struct.new(:name, :programs, :identifier)
+      def to_s
+        "#{self.name} (#{self.identifier})" + (" [#{self.programs.join(', ')}]" unless self.programs.empty?).to_s
+      end
+    end
   end
 end
 

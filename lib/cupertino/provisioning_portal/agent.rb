@@ -7,11 +7,7 @@ require 'logger'
 module Cupertino
   module ProvisioningPortal
     class Agent < ::Mechanize
-      attr_accessor :username, :password, :team_id
-
-      # Maintain backward compatibility
-      alias_method :team, :team_id
-      alias_method :team=, :team_id=
+      attr_accessor :username, :password, :team
 
       def initialize
         super
@@ -220,7 +216,11 @@ module Cupertino
 
         devices = list_devices
 
-        get(profile.edit_url)
+        begin
+          get(profile.edit_url)
+        rescue Mechanize::ResponseCodeError
+          say_error "Cannot manage devices for #{profile}" and abort
+        end
 
         on, off = [], []
         page.search('dd.selectDevices div.rows div').each do |row|

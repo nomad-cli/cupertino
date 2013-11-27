@@ -117,6 +117,7 @@ module Cupertino
           device.name = row['name']
           device.enabled = (row['status'] == 'c' ? 'Y' : 'N')
           device.device_id = row['deviceId']
+          device.udid = row['deviceNumber']
           devices << device
         end
 

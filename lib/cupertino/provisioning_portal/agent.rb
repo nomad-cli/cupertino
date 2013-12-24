@@ -159,6 +159,40 @@ module Cupertino
         end
       end
 
+      def add_device_list_file(device_list_file)
+        return if device_list_file.empty?
+
+        get('https://developer.apple.com/account/ios/device/deviceCreate.action')
+
+        begin
+          file = open(device_list_file)
+
+          form = page.form_with(:name => 'deviceImport') or raise UnexpectedContentError
+
+          upload = form.file_uploads.first
+          upload.file_name = file.path
+          puts file.path
+          form.radiobuttons.first.check()
+          form.submit
+
+          if form = page.form_with(:name => 'deviceSubmit')
+            form.method = 'POST'
+            form.field_with(:name => 'deviceNames').name = 'name'
+            form.field_with(:name => 'deviceNumbers').name = 'deviceNumber'
+            form.submit
+          elsif form = page.form_with(:name => 'deviceImport')
+            form.submit
+          else
+            raise UnexpectedContentError
+          end
+        rescue Exception => e
+          puts e.message
+          puts e.backtrace.inspect
+        ensure
+          file.close
+        end
+      end
+
       def list_profiles(type = :development)
         url = case type
               when :development

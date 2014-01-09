@@ -271,14 +271,32 @@ module Cupertino
           app_id.development_properties, app_id.distribution_properties = [], []
           row['features'].each do |feature, value|
             if value == true
-              app_id.development_properties << feature
-            elsif value.kind_of?(String) && !value.empty?
-              app_id.development_properties << "#{feature}: #{value}"
+              if feature == "push"
+                if row['isDevPushEnabled'] == true
+                  app_id.development_properties << "push:Enabled"
+                else
+                  app_id.development_properties << "push:Configurable"
+                end
+              else 
+                app_id.development_properties << "#{feature}:Enabled"
+              end
+            end
+
             end
           end
 
           row['enabledFeatures'].each do |feature|
-            app_id.distribution_properties << feature
+              if feature == "push"
+                if row['isDevPushEnabled'] == true
+                  app_id.development_properties << "push:Enabled"
+                else
+                  app_id.development_properties << "push:Configurable"
+                end
+              else 
+                app_id.development_properties << "#{feature}:Enabled"
+              end
+            end
+
           end
 
           app_ids << app_id

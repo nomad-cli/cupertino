@@ -21,7 +21,8 @@ command :'app_ids:list' do |c|
         row = [app_id.bundle_seed_id, app_id.description]
         [app_id.development_properties, app_id.distribution_properties].each do |properties|
           values = []
-          properties.each do |key, value|
+          properties.each do  |property|
+            key,value = property.split(":")
             color = COLORS_BY_PROPERTY_VALUES[value] || :reset
             values << key.sub(/\:$/, "").send(color)
           end

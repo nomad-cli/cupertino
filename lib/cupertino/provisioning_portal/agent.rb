@@ -39,9 +39,9 @@ module Cupertino
 
           case page.title
           when /Sign in with your Apple ID/
-            login! and redo
+            login!
           when /Select Team/
-            select_team! and redo
+            select_team!
           else
             return page
           end
@@ -117,6 +117,7 @@ module Cupertino
           device.name = row['name']
           device.enabled = (row['status'] == 'c' ? 'Y' : 'N')
           device.device_id = row['deviceId']
+          device.udid = row['deviceNumber']
           devices << device
         end
 

@@ -8,7 +8,7 @@ Gem::Specification.new do |s|
   s.license     = "MIT"
   s.authors     = ["Mattt Thompson"]
   s.email       = "m@mattt.me"
-  s.homepage    = "http://mattt.me"
+  s.homepage    = "http://nomad-cli.com"
   s.version     = Cupertino::VERSION
   s.platform    = Gem::Platform::RUBY
   s.summary     = "Cupertino"

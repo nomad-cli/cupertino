@@ -29,13 +29,18 @@ end
 alias_command :devices, :'devices:list'
 
 command :'devices:add' do |c|
-  c.syntax = 'ios devices:add DEVICE_NAME=DEVICE_ID [...]'
+  c.syntax = 'ios devices:add [-f filename | DEVICE_NAME=DEVICE_ID [...]]'
   c.summary = 'Adds the a device to the Provisioning Portal'
   c.description = ''
+  c.option '-f filename', 'device list file'
 
   c.action do |args, options|
-    say_error "Missing arguments, expected DEVICE_NAME=DEVICE_ID" and abort if args.nil? or args.empty?
-
+    if(options.f)
+      agent.add_device_list_file(options.f)
+      say_ok "Added device list file"
+      return
+    end
+    say_error "Missing arguments, expected DEVICE_NAME=DEVICE_ID or -f device_list_filename" and abort if args.nil? or args.empty?
     devices = []
     args.each do |arg|
       components = arg.strip.gsub(/"/, '').split(/\=/)

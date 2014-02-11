@@ -4,7 +4,7 @@ command :'certificates:list' do |c|
   c.description = ''
 
   c.action do |args, options|
-    type = args.first.downcase.to_sym rescue nil
+    type = agent.profile_type
     certificates = try{agent.list_certificates(type ||= :development)}
 
     say_warning "No #{type} certificates found." and abort if certificates.empty?
@@ -36,12 +36,21 @@ command :'certificates:download' do |c|
   c.description = ''
 
   c.action do |args, options|
-    type = args.first.downcase.to_sym rescue nil
+    type = agent.profile_type
     certificates = try{agent.list_certificates(type ||= :development)}
-
+    profile_name = args.first
     say_warning "No #{type} certificates found." and abort if certificates.empty?
+    certificate_index = nil
+    if profile_name != nil
+      certificate_index = certificates.index{|x| x.name.match "^"+args.first+"$"}
+    end
 
-    certificate = choose "Select a certificate to download:", *certificates
+    if certificate_index == nil
+      certificate = choose "Select a certificate to download:", *certificates
+    else
+      certificate = certificates[certificate_index]   
+    end
+
     if filename = agent.download_certificate(certificate)
       say_ok "Successfully downloaded: '#{filename}'"
     else

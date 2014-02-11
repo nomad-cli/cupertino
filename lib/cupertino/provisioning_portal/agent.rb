@@ -7,12 +7,14 @@ require 'logger'
 module Cupertino
   module ProvisioningPortal
     class Agent < ::Mechanize
-      attr_accessor :username, :password, :team
+      attr_accessor :username, :password, :team, :profile_type
 
       def initialize
         super
 
         self.user_agent_alias = 'Mac Safari'
+
+        self.profile_type = :development
 
         self.log ||= Logger.new(STDOUT)
         self.log.level = Logger::ERROR

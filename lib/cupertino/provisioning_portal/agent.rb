@@ -47,9 +47,9 @@ module Cupertino
 
           case page.title
           when /Sign in with your Apple ID/
-            login! and redo
+            login!
           when /Select Team/
-            select_team! and redo
+            select_team!
           else
             return page
           end

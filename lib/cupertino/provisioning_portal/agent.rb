@@ -29,10 +29,9 @@ module Cupertino
         @username, @password = pw.attributes['acct'], pw.password if pw
       end
 
-
       def username=(value)
           @username = value
-          
+         
           pw = Security::InternetPassword.find(:a => self.username, :server => Cupertino::ProvisioningPortal::HOST)
           @password = pw.password if pw
       end
@@ -280,32 +279,14 @@ module Cupertino
           app_id.development_properties, app_id.distribution_properties = [], []
           row['features'].each do |feature, value|
             if value == true
-              if feature == "push"
-                if row['isDevPushEnabled'] == true
-                  app_id.development_properties << "push:Enabled"
-                else
-                  app_id.development_properties << "push:Configurable"
-                end
-              else 
-                app_id.development_properties << "#{feature}:Enabled"
-              end
-            end
-
+              app_id.development_properties << feature
+            elsif value.kind_of?(String) && !value.empty?
+              app_id.development_properties << "#{feature}: #{value}"
             end
           end
 
           row['enabledFeatures'].each do |feature|
-              if feature == "push"
-                if row['isDevPushEnabled'] == true
-                  app_id.development_properties << "push:Enabled"
-                else
-                  app_id.development_properties << "push:Configurable"
-                end
-              else 
-                app_id.development_properties << "#{feature}:Enabled"
-              end
-            end
-
+            app_id.distribution_properties << feature
           end
 
           app_ids << app_id

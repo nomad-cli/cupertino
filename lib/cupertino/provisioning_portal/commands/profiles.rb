@@ -136,14 +136,20 @@ command :'profiles:manage:devices:add' do |c|
     say_warning "No provisioning profiles named #{args.first} were found." and abort unless profile
 
     names = args[1..-1].select{|arg| /\=/ === arg}.collect{|arg| arg.sub /\=.*/, ''}
+    device_ids = args[1..-1].select{|arg| /\=/ === arg}.collect{|arg| arg.sub /.*\=/, ''}
     devices = []
 
     agent.manage_devices_for_profile(profile) do |on, off|
       names.each_with_index do |name, idx|
-        next if idx == 0 and name == profile.name
+        # the following line is useless if names does not contain profile name
+        #next if idx == 0 and name == profile.name
 
-        device = (on + off).detect{|d| d.name === name}
-        say_warning "No device named #{name} was found." unless device
+        #device = (on + off).detect{|d| d.name === name}
+
+        # use udid to find device 
+        device_id = device_ids[idx]
+        device = (on + off).detect{|d| d.udid === device_id}
+        say_warning "No device named #{name} #{device_id} was found." unless device
         devices << Device.new(name, device.udid,"Y",device.device_id)
       end
 

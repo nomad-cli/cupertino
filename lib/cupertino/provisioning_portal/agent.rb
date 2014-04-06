@@ -7,7 +7,7 @@ require 'logger'
 module Cupertino
   module ProvisioningPortal
     class Agent < ::Mechanize
-      attr_accessor :username, :password, :team
+      attr_accessor :username, :password, :team, :quiet_mode
 
       def initialize
         super
@@ -27,6 +27,8 @@ module Cupertino
 
         pw = Security::InternetPassword.find(:server => Cupertino::ProvisioningPortal::HOST)
         @username, @password = pw.attributes['acct'], pw.password if pw
+
+        @quiet_mode = false
       end
 
       def username=(value)

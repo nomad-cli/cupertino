@@ -134,36 +134,61 @@ module Cupertino
       def add_devices(*devices)
         return if devices.empty?
 
-        get('https://developer.apple.com/account/ios/device/deviceCreate.action')
+        unless check_for_notices
 
-        begin
-          file = Tempfile.new(%w(devices .txt))
-          file.write("Device ID\tDevice Name")
-          devices.each do |device|
-            file.write("\n#{device.udid}\t#{device.name}")
-          end
-          file.rewind
+          get('https://developer.apple.com/account/ios/device/deviceCreate.action')
 
-          form = page.form_with(:name => 'deviceImport') or raise UnexpectedContentError
+          begin
+            file = Tempfile.new(%w(devices .txt))
+            file.write("Device ID\tDevice Name")
+            devices.each do |device|
+              file.write("\n#{device.udid}\t#{device.name}")
+            end
+            file.rewind
 
-          upload = form.file_uploads.first
-          upload.file_name = file.path
-          form.radiobuttons.first.check()
-          form.submit
+            form = page.form_with(:name => 'deviceImport') or raise UnexpectedContentError
 
-          if form = page.form_with(:name => 'deviceSubmit')
-            form.method = 'POST'
-            form.field_with(:name => 'deviceNames').name = 'name'
-            form.field_with(:name => 'deviceNumbers').name = 'deviceNumber'
+            upload = form.file_uploads.first
+            upload.file_name = file.path
+            form.radiobuttons.first.check()
             form.submit
-          elsif form = page.form_with(:name => 'deviceImport')
-            form.submit
-          else
-            raise UnexpectedContentError
-          end
 
-        ensure
-          file.close!
+            if form = page.form_with(:name => 'deviceSubmit')
+              form.method = 'POST'
+              form.field_with(:name => 'deviceNames').name = 'name'
+              form.field_with(:name => 'deviceNumbers').name = 'deviceNumber'
+              form.submit
+            elsif form = page.form_with(:name => 'deviceImport')
+              form.submit
+            else
+              raise UnexpectedContentError
+            end
+
+          ensure
+            file.close!
+          end
+        else
+          say_warning "Notice present, please check the Developer Portal Devices Section. NO DEVICES ADDED."
+          raise "STOP"
+        end
+      end
+
+      def check_for_notices
+
+        # Pull down https://developer.apple.com/account/ios/device/deviceList.action
+        # Check for html like:
+        # <div class="content-noticebar">
+        #   Reset your device list before adding any new devices. <a href="/account/ios/device/deviceReset.action" class="button small yellow navLink"><span>Get Started</span></a>
+        # </div>
+        #
+        # If we find it BLOW UP
+
+        get "https://developer.apple.com/account/ios/device/deviceList.action"
+        regex = /content-noticebar/
+        if page.body.match(regex)
+          return true
+        else
+          return false
         end
       end
 

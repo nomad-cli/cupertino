@@ -30,7 +30,7 @@ alias_command :devices, :'devices:list'
 
 command :'devices:add' do |c|
   c.syntax = 'ios devices:add DEVICE_NAME=DEVICE_ID [...]'
-  c.summary = 'Adds the a device to the Provisioning Portal'
+  c.summary = 'Adds a device to the Provisioning Portal'
   c.description = ''
 
   c.action do |args, options|

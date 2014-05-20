@@ -7,7 +7,7 @@ require 'logger'
 module Cupertino
   module ProvisioningPortal
     class Agent < ::Mechanize
-      attr_accessor :username, :password, :team
+      attr_accessor :username, :password, :team, :quiet_mode
 
       def initialize
         super
@@ -27,6 +27,15 @@ module Cupertino
 
         pw = Security::InternetPassword.find(:server => Cupertino::ProvisioningPortal::HOST)
         @username, @password = pw.attributes['acct'], pw.password if pw
+
+        @quiet_mode = false
+      end
+
+      def username=(value)
+          @username = value
+          
+          pw = Security::InternetPassword.find(:a => self.username, :server => Cupertino::ProvisioningPortal::HOST)
+          @password = pw.password if pw
       end
 
       def get(uri, parameters = [], referer = nil, headers = {})
@@ -39,9 +48,9 @@ module Cupertino
 
           case page.title
           when /Sign in with your Apple ID/
-            login! and redo
+            login!
           when /Select Team/
-            select_team! and redo
+            select_team!
           else
             return page
           end
@@ -117,6 +126,7 @@ module Cupertino
           device.name = row['name']
           device.enabled = (row['status'] == 'c' ? 'Y' : 'N')
           device.device_id = row['deviceId']
+          device.udid = row['deviceNumber']
           devices << device
         end
 

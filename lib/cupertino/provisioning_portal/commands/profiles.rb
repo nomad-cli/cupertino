@@ -46,7 +46,9 @@ command :'profiles:download' do |c|
 
     say_warning "No active #{type} profiles found." and abort if profiles.empty?
 
-    profile = profiles.find{|p| p.name == args.join(" ")} || choose("Select a profile:", *profiles)
+    profile = profiles.find{|p| p.name == args.join(" ")} || ( agent.quiet_mode == false && choose("Select a profile:", *profiles) )
+
+    say_warning "No provisioning profiles named '"+ args.join(" ") +"' were found." and abort unless profile
 
     if filename = agent.download_profile(profile)
       say_ok "Successfully downloaded: '#{filename}'"
@@ -93,7 +95,9 @@ command :'profiles:manage:devices' do |c|
 
     say_warning "No valid #{type} provisioning profiles found." and abort if profiles.empty?
 
-    profile = profiles.find{|p| p.name == args.first} || choose("Select a profile:", *profiles)
+    profile = profiles.find{|p| p.name == args.first} || ( agent.quiet_mode == false && choose("Select a profile:", *profiles) )
+
+    say_warning "No provisioning profiles named #{args.first} were found." and abort unless profile
 
     agent.manage_devices_for_profile(profile) do |on, off|
       lines = ["# Comment / Uncomment Devices to Turn Off / On for Provisioning Profile"]
@@ -127,18 +131,26 @@ command :'profiles:manage:devices:add' do |c|
 
   c.action do |args, options|
     profiles = try{agent.list_profiles(:development) + agent.list_profiles(:distribution)}
-    profile = profiles.find{|p| p.name == args.first} || choose("Select a profile:", *profiles)
+    profile = profiles.find{|p| p.name == args.first} || ( agent.quiet_mode == false && choose("Select a profile:", *profiles) )
+
+    say_warning "No provisioning profiles named #{args.first} were found." and abort unless profile
 
     names = args[1..-1].select{|arg| /\=/ === arg}.collect{|arg| arg.sub /\=.*/, ''}
+    device_ids = args[1..-1].select{|arg| /\=/ === arg}.collect{|arg| arg.sub /.*\=/, ''}
     devices = []
 
     agent.manage_devices_for_profile(profile) do |on, off|
       names.each_with_index do |name, idx|
-        next if idx == 0 and name == profile.name
+        # the following line is useless if names does not contain profile name
+        #next if idx == 0 and name == profile.name
 
-        device = (on + off).detect{|d| d.name === name}
-        say_warning "No device named #{name} was found." unless device
-        devices << Device.new(name, device.udid)
+        #device = (on + off).detect{|d| d.name === name}
+
+        # use udid to find device 
+        device_id = device_ids[idx]
+        device = (on + off).detect{|d| d.udid === device_id}
+        say_warning "No device named #{name} #{device_id} was found." unless device
+        devices << Device.new(name, device.udid,"Y",device.device_id)
       end
 
       on + devices
@@ -162,7 +174,7 @@ command :'profiles:manage:devices:remove' do |c|
 
   c.action do |args, options|
     profiles = try{agent.list_profiles(:development) + agent.list_profiles(:distribution)}
-    profile = profiles.find{|p| p.name == args.first} || choose("Select a profile:", *profiles)
+    profile = profiles.find{|p| p.name == args.first} || ( agent.quiet_mode == false && choose("Select a profile:", *profiles) )
 
     say_warning "No provisioning profiles named #{args.first} were found." and abort unless profile
 

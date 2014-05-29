@@ -29,6 +29,13 @@ module Cupertino
         @username, @password = pw.attributes['acct'], pw.password if pw
       end
 
+      def username=(value)
+          @username = value
+          
+          pw = Security::InternetPassword.find(:a => self.username, :server => Cupertino::ProvisioningPortal::HOST)
+          @password = pw.password if pw
+      end
+
       def get(uri, parameters = [], referer = nil, headers = {})
         uri = ::File.join("https://#{Cupertino::ProvisioningPortal::HOST}", uri) unless /^https?/ === uri
 

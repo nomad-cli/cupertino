@@ -211,8 +211,6 @@ module Cupertino
       end
 
       def download_profile(profile)
-        list_profiles(profile.type)
-
         self.pluggable_parser.default = Mechanize::Download
         download = get(profile.download_url)
         download.save

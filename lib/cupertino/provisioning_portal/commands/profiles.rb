@@ -129,7 +129,7 @@ command :'profiles:manage:devices:add' do |c|
     profiles = try{agent.list_profiles(:development) + agent.list_profiles(:distribution)}
     profile = profiles.find{|p| p.name == args.first} || choose("Select a profile:", *profiles)
 
-    names = args[1..-1].select{|arg| /\=/ === arg}.collect{|arg| arg.sub /\=.*/, ''}
+    names = args[1..-1].select{|arg| /\=/ === arg}.collect{|arg| arg.sub(/\=.*/, '')}
     devices = []
 
     agent.manage_devices_for_profile(profile) do |on, off|
@@ -166,7 +166,7 @@ command :'profiles:manage:devices:remove' do |c|
 
     say_warning "No provisioning profiles named #{args.first} were found." and abort unless profile
 
-    names = args.collect{|arg| arg.gsub /\=.*/, ''}
+    names = args.collect{|arg| arg.gsub(/\=.*/, '')}
 
     devices = []
     agent.manage_devices_for_profile(profile) do |on, off|

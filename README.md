@@ -9,90 +9,110 @@ Automate administrative tasks that you would normally have to do through the App
 
 Cupertino requires the [Xcode Command Line Tools](https://developer.apple.com/xcode/), which can be installed with the following command:
 
-    $ xcode-select --install
+```
+$ xcode-select --install
+```
 
 ## Installation
 
-    $ gem install cupertino
+```
+$ gem install cupertino
+```
 
 ## Usage
 
 ### Authentication
 
-    $ ios login
-
+```
+$ ios login
+```
 
 _Credentials are saved in the Keychain. You will not be prompted for your username or password by commands while you are logged in. (Mac only)_
 
 ### Devices
 
-    $ ios devices:list
+```
+$ ios devices:list
 
-    +------------------------------+---------------------------------------+
-    |       Listing 2 devices. You can register 98 additional devices.     |
-    +---------------------------+------------------------------------------+
-    | Device Name               | Device Identifier                        |
-    +---------------------------+------------------------------------------+
-    | Johnny Appleseed iPad     | 0123456789012345678901234567890123abcdef |
-    | Johnny Appleseed iPhone   | abcdef0123456789012345678901234567890123 |
-    +---------------------------+------------------------------------------+
++------------------------------+---------------------------------------+
+|       Listing 2 devices. You can register 98 additional devices.     |
++---------------------------+------------------------------------------+
+| Device Name               | Device Identifier                        |
++---------------------------+------------------------------------------+
+| Johnny Appleseed iPad     | 0123456789012345678901234567890123abcdef |
+| Johnny Appleseed iPhone   | abcdef0123456789012345678901234567890123 |
++---------------------------+------------------------------------------+
 
-    $ ios devices:add "iPad 1"=abc123
-    $ ios devices:add "iPad 2"=def456 "iPad 3"=ghi789 ...
+$ ios devices:add "iPad 1"=abc123
+$ ios devices:add "iPad 2"=def456 "iPad 3"=ghi789 ...
+```
 
 ### Provisioning Profiles
 
-    $ ios profiles:list
+```
+$ ios profiles:list
 
-    +----------------------------------+--------------+---------+
-    | Profile                          | App ID       | Status  |
-    +----------------------------------+--------------+---------+
-    | iOS Team Provisioning Profile: * | ABCDEFG123.* | Valid   |
-    +----------------------------------+--------------+---------+
++----------------------------------+--------------+---------+
+| Profile                          | App ID       | Status  |
++----------------------------------+--------------+---------+
+| iOS Team Provisioning Profile: * | ABCDEFG123.* | Valid   |
++----------------------------------+--------------+---------+
+```
 
 ---
 
-    $ ios profiles:manage:devices
+```
+$ ios profiles:manage:devices
+```
 
 _Opens an editor with a list of devices, each of which can be commented / uncommented to turn them off / on for that provisioning profile._
 
-    # Comment / Uncomment Devices to Turn Off / On for Provisioning Profile
-    Johnny Appleseed iPad 0123456789012345678901234567890123abcdef
-    # Johnny Appleseed iPhone abcdef0123456789012345678901234567890123
+```
+# Comment / Uncomment Devices to Turn Off / On for Provisioning Profile
+Johnny Appleseed iPad 0123456789012345678901234567890123abcdef
+# Johnny Appleseed iPhone abcdef0123456789012345678901234567890123
+```
 
-
-    $ ios profiles:devices:add MyApp_Development_Profile "Johnny Appleseed iPad"=0123456789012345678901234567890123abcdef "Johnny Appleseed iPhone"=abcdef0123456789012345678901234567890123
+```
+$ ios profiles:devices:add MyApp_Development_Profile "Johnny Appleseed iPad"=0123456789012345678901234567890123abcdef "Johnny Appleseed iPhone"=abcdef0123456789012345678901234567890123
+```
 
 _Adds (without an editor) a list of devices to a provisioning profile_
 
-    $ ios profiles:devices:remove MyApp_Development_Profile "Johnny Old iPad"=0123456789012345678901234567890123abcdef "Johnny Old iPhone"=abcdef0123456789012345678901234567890123
+```
+$ ios profiles:devices:remove MyApp_Development_Profile "Johnny Old iPad"=0123456789012345678901234567890123abcdef "Johnny Old iPhone"=abcdef0123456789012345678901234567890123
+```
 
 _Removes (without an editor) a list of devices from a provisioning profile_
 
 ### App IDs
 
-    $ ios app_ids:list
+```
+$ ios app_ids:list
 
-    +-----------------------------+------------------------+-------------------+-------------------+
-    | Bundle Seed ID              | Description            | Development       | Distribution      |
-    +-----------------------------+------------------------+-------------------+-------------------+
-    | 123ABCDEFG.com.mattt.bundle | App Bundle Description | Passes            | Passes            |
-    |                             |                        | Data Protection   | Data Protection   |
-    |                             |                        | iCloud            | iCloud            |
-    |                             |                        | In-App Purchase   | In-App Purchase   |
-    |                             |                        | Game Center       | Game Center       |
-    |                             |                        | Push Notification | Push Notification |
-    +-----------------------------+------------------------+-------------------+-------------------+
++-----------------------------+------------------------+-------------------+-------------------+
+| Bundle Seed ID              | Description            | Development       | Distribution      |
++-----------------------------+------------------------+-------------------+-------------------+
+| 123ABCDEFG.com.mattt.bundle | App Bundle Description | Passes            | Passes            |
+|                             |                        | Data Protection   | Data Protection   |
+|                             |                        | iCloud            | iCloud            |
+|                             |                        | In-App Purchase   | In-App Purchase   |
+|                             |                        | Game Center       | Game Center       |
+|                             |                        | Push Notification | Push Notification |
++-----------------------------+------------------------+-------------------+-------------------+
+```
 
 ### Certificates
 
-    $ ios certificates:list
+```
+$ ios certificates:list
 
-    +------------------+----------------------------------+-----------------+--------+
-    | Name             | Provisioning Profiles            | Expiration Date | Status |
-    +------------------+----------------------------------+-----------------+--------+
-    | Johnny Appleseed | iOS Team Provisioning Profile: * | Dec 23, 2012    | Issued |
-    +------------------+----------------------------------+-----------------+--------+
++------------------+----------------------------------+-----------------+--------+
+| Name             | Provisioning Profiles            | Expiration Date | Status |
++------------------+----------------------------------+-----------------+--------+
+| Johnny Appleseed | iOS Team Provisioning Profile: * | Dec 23, 2012    | Issued |
++------------------+----------------------------------+-----------------+--------+
+```
 
 ## Commands
 

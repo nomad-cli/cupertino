@@ -9,8 +9,10 @@ command :login do |c|
     user = ask "Username:"
     pass = password "Password:"
 
-    Security::InternetPassword.add(Cupertino::ProvisioningPortal::HOST, user, pass)
-
-    say_ok "Account credentials saved"
+    if Security::InternetPassword.add(Cupertino::ProvisioningPortal::HOST, user, pass)
+      say_ok "Account credentials saved"
+    else
+      say_error "Error saving credentials"
+    end
   end
 end

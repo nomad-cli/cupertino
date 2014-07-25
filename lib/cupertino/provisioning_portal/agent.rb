@@ -258,6 +258,31 @@ module Cupertino
         form.submit
       end
 
+      def list_devices_for_profile(profile)
+        
+        devices = list_devices
+
+        begin
+          get(profile.edit_url)
+        rescue Mechanize::ResponseCodeError
+          say_error "Cannot manage devices for #{profile}" and abort
+        end
+
+        on, off = [], []
+        page.search('dd.selectDevices div.rows div').each do |row|
+          checkbox = row.search('input[type="checkbox"]').first
+          device = devices.detect{|device| device.device_id == checkbox['value']}
+
+          if checkbox['checked']
+            on << device
+          else
+            off << device
+          end
+        end
+
+        { :on => on, :off => off }
+      end
+
       def list_app_ids
         get('https://developer.apple.com/account/ios/identifiers/bundle/bundleList.action')
 

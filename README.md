@@ -91,7 +91,7 @@ _Removes (without an editor) a list of devices from a provisioning profile_
 $ ios profiles:devices:list MyApp_Development_Profile
 
 +--------------------------+------------------------------------------+--------+
-|         Listing devices for provisioning profile RedeBeta_Development          |
+|         Listing devices for provisioning profile MyApp_Development_Profile   |
 +--------------------------+------------------------------------------+--------+
 | Device Name              | Device Identifier                        | Active |
 +--------------------------+------------------------------------------+--------+

@@ -202,7 +202,7 @@ command :'profiles:devices:list' do |c|
 
     list = agent.list_devices_for_profile(profile)
 
-    title = "Listing devices for provisiong profile #{profile.name}"
+    title = "Listing devices for provisioning profile #{profile.name}"
 
     table = Terminal::Table.new :title => title do |t|
       t << ["Device Name", "Device Identifier", "Active"]

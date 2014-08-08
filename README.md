@@ -85,6 +85,21 @@ $ ios profiles:devices:remove MyApp_Development_Profile "Johnny Old iPad"=012345
 
 _Removes (without an editor) a list of devices from a provisioning profile_
 
+---
+
+```
+$ ios profiles:devices:list MyApp_Development_Profile
+
++--------------------------+------------------------------------------+--------+
+|         Listing devices for provisioning profile MyApp_Development_Profile   |
++--------------------------+------------------------------------------+--------+
+| Device Name              | Device Identifier                        | Active |
++--------------------------+------------------------------------------+--------+
+| Person's iPhone 5        | 888888883e48a3e0458aab2691d565a8a63f7888 |   Y    |
++--------------------------+------------------------------------------+--------+
+
+```
+
 ### App IDs
 
 ```
@@ -126,6 +141,7 @@ $ ios certificates:list
 - `profiles:manage:devices:remove`
 - `profiles:download`
 - `profiles:download:all`
+- `profiles:devices:list`
 - `certificates:list`
 - `certificates:download`
 - `app_ids:list`

@@ -168,16 +168,18 @@ command :'profiles:manage:devices:remove' do |c|
 
     names = args.collect{|arg| arg.gsub(/\=.*/, '')}
 
-    devices = []
+		removed = []
+
     agent.manage_devices_for_profile(profile) do |on, off|
-      devices = on.delete_if{|device| names.include?(device.name)}
+			removed = on.select{|device| names.include?(device.name)}
+      on - removed
     end
 
-    case devices.length
+    case removed.length
     when 0
       say_warning "No devices were removed"
     else
-      say_ok "Successfully removed #{pluralize(devices.length, 'device', 'devices')} from #{profile}."
+      say_ok "Successfully removed #{pluralize(removed.length, 'device', 'devices')} from #{profile}."
     end
   end
 end

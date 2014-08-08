@@ -183,3 +183,44 @@ command :'profiles:manage:devices:remove' do |c|
 end
 
 alias_command :'profiles:devices:remove', :'profiles:manage:devices:remove'
+
+command :'profiles:devices:list' do |c|
+  c.syntax = 'ios profiles:devices:list [PROFILE_NAME]'
+  c.summary = 'List devices for a development provisioning profile'
+  c.description = ''
+
+  c.option '--type [TYPE]', [:development, :distribution], "Type of profile (development or distribution; defaults to development)"
+
+  c.action do |args, options|
+    type = (options.type.downcase.to_sym if options.type) || :development
+    profiles = try{agent.list_profiles(type)}
+    profiles.delete_if{|profile| profile.status == "Invalid"}
+
+    say_warning "No valid #{type} provisioning profiles found." and abort if profiles.empty?
+
+    profile = profiles.find{|p| p.name == args.first} || choose("Select a profile:", *profiles)
+
+    list = agent.list_devices_for_profile(profile)
+
+    title = "Listing devices for provisioning profile #{profile.name}"
+
+    table = Terminal::Table.new :title => title do |t|
+      t << ["Device Name", "Device Identifier", "Active"]
+      t.add_separator
+      list[:on].each do |device|
+        t << [device.name, device.udid, "Y"]
+      end
+      list[:off].each do |device|
+        t << [device.name, device.udid, "N"]
+      end
+    end
+
+    table.align_column 2, :center
+
+    puts table
+
+  end
+end
+
+alias_command :'profiles:list_devices', :'profiles:manage:devices:list'
+

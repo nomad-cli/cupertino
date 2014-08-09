@@ -33,7 +33,7 @@ module Cupertino
                 end
 
                 unless team = teams.detect{|t| t.name == @team || t.identifier == @team}
-                  team = choose "Select a team:", *teams
+                  team = choose("Select a team:", *teams)
                 end
 
                 @team_id = team.identifier

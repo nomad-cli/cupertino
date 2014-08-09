@@ -133,6 +133,12 @@ $ ios certificates:list
 +------------------+----------------------------------+-----------------+--------+
 ```
 
+```
+$ ios certificates:download
+$ ios certificates:download --type distribution
+$ ios certificates:download NAME
+```
+
 ## Commands
 
 - `login`

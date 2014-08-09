@@ -36,7 +36,7 @@ command :'devices:add' do |c|
 
     devices = []
     args.each do |arg|
-      components = arg.strip.gsub(/"/, '').split(/\=/)
+      components = arg.gsub(/"/, '').split(/\=/)
       device = Device.new
       device.name = components.first
       device.udid = components.last

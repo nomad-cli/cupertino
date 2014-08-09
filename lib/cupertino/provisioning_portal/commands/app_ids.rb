@@ -44,7 +44,7 @@ command :'app_ids:add' do |c|
     say_error "Missing arguments, expected NAME=BUNDLE_ID" and abort if args.nil? or args.empty?
 
     args.each do |arg|
-      components = arg.strip.gsub(/"/, '').split(/\=/)
+      components = arg.gsub(/"/, '').split(/\=/)
       say_warning "Invalid argument #{arg}, must be in form NAME=BUNDLE_ID" and next unless components.length == 2
       app_id = AppID.new
       app_id.description = components.first

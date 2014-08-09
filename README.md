@@ -117,6 +117,10 @@ $ ios app_ids:list
 +-----------------------------+------------------------+-------------------+-------------------+
 ```
 
+```
+$ ios app_ids:add "App Bundle Description=123ABCDEFG.com.mattt.bundle"
+```
+
 ### Certificates
 
 ```

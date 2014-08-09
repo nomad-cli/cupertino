@@ -36,3 +36,22 @@ command :'app_ids:list' do |c|
 end
 
 alias_command :app_ids, :'app_ids:list'
+
+command :'app_ids:add' do |c|
+  c.syntax = 'ios aps_ids:add NAME=BUNDLE_ID'
+  c.summary = 'Adds the app to the Provisioning Portal'
+  c.description = ''
+  c.action do |args, options|
+    say_error "Missing arguments, expected NAME=BUNDLE_ID" and abort if args.nil? or args.empty?
+
+    args.each do |arg|
+      components = arg.strip.gsub(/"/, '').split(/\=/)
+      say_warning "Invalid argument #{arg}, must be in form NAME=BUNDLE_ID" and next unless components.length == 2
+      app_id = AppID.new
+      app_id.description = components.first
+      app_id.bundle_seed_id = components.last
+      agent.add_app_id(app_id)
+      say_ok "Successfully added App ID #{app_id.bundle_seed_id}"
+    end
+  end
+end

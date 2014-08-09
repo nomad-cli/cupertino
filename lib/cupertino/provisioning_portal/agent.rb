@@ -30,10 +30,10 @@ module Cupertino
       end
 
       def username=(value)
-          @username = value
+        @username = value
 
-          pw = Security::InternetPassword.find(:a => self.username, :server => Cupertino::ProvisioningPortal::HOST)
-          @password = pw.password if pw
+        pw = Security::InternetPassword.find(:a => self.username, :server => Cupertino::ProvisioningPortal::HOST)
+        @password = pw.password if pw
       end
 
       def get(uri, parameters = [], referer = nil, headers = {})
@@ -280,6 +280,43 @@ module Cupertino
         end
 
         { :on => on, :off => off }
+      end
+
+      def add_app_id(app_id)
+        get("https://developer.apple.com/account/ios/identifiers/bundle/bundleCreate.action")
+
+        form = page.form_with(:name => 'bundleSave') or raise UnexpectedContentError
+        form.method = 'POST'
+        form.action = "https://developer.apple.com/account/ios/identifiers/bundle/bundleConfirm.action"
+        form.field_with(:name => "appIdName").value = app_id.description
+        form.field_with(:name => "explicitIdentifier").value = app_id.bundle_seed_id
+        form.checkbox_with(:name => "push").check()
+        form.add_field!("appIdentifierString", app_id.bundle_seed_id)
+        form.add_field!("formID", "#{rand(10000000)}")
+        form.add_field!("clientToken", "undefined")
+        form.submit
+
+        if form = page.form_with(:name => 'bundleSubmit')
+          form.method = 'POST'
+
+          adssuv = cookies.find{|cookie| cookie.name == 'adssuv'}
+          form.add_field!("adssuv-value", Mechanize::Util::uri_unescape(adssuv.value))
+
+          form.add_field!("inAppPurchase", "on")
+          form.add_field!("gameCenter", "on")
+          form.add_field!("push", "on")
+
+          form.add_field!("explicitIdentifier", app_id.bundle_seed_id)
+          form.add_field!("appIdentifierString", app_id.bundle_seed_id)
+          form.add_field!("appIdName", app_id.description)
+          form.add_field!("type", "explicit")
+
+          form.submit
+        elsif form = page.form_with(:name => 'bundleSave')
+          form.submit
+        else
+          raise UnexpectedContentError
+        end
       end
 
       def list_app_ids

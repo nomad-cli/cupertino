@@ -1,7 +1,6 @@
 command :'profiles:list' do |c|
   c.syntax = 'ios profiles:list'
   c.summary = 'Lists the Provisioning Profiles'
-  c.description = ''
 
   c.option '--type [TYPE]', [:development, :distribution], "Type of profile (development or distribution; defaults to development)"
 
@@ -35,7 +34,6 @@ alias_command :profiles, :'profiles:list'
 command :'profiles:download' do |c|
   c.syntax = 'ios profiles:download [PROFILE_NAME]'
   c.summary = 'Downloads the Provisioning Profiles'
-  c.description = ''
 
   c.option '--type [TYPE]', [:development, :distribution], "Type of profile (development or distribution; defaults to development)"
 
@@ -59,7 +57,6 @@ end
 command :'profiles:download:all' do |c|
   c.syntax = 'ios profiles:download:all'
   c.summary = 'Downloads all the active Provisioning Profiles'
-  c.description = ''
 
   c.option '--type [TYPE]', [:development, :distribution], "Type of profile (development or distribution; defaults to development)"
 
@@ -81,7 +78,6 @@ end
 command :'profiles:manage:devices' do |c|
   c.syntax = 'ios profiles:manage:devices [PROFILE_NAME]'
   c.summary = 'Manage active devices for a development provisioning profile'
-  c.description = ''
 
   c.option '--type [TYPE]', [:development, :distribution], "Type of profile (development or distribution; defaults to development)"
 
@@ -122,7 +118,6 @@ alias_command :'profiles:devices', :'profiles:manage:devices'
 command :'profiles:manage:devices:add' do |c|
   c.syntax = 'ios profiles:manage:devices:add [PROFILE_NAME] DEVICE_NAME=DEVICE_ID [...]'
   c.summary = 'Add active devices to a Provisioning Profile'
-  c.description = ''
 
   c.action do |args, options|
     profiles = try{agent.list_profiles(:development) + agent.list_profiles(:distribution)}
@@ -157,7 +152,6 @@ alias_command :'profiles:devices:add', :'profiles:manage:devices:add'
 command :'profiles:manage:devices:remove' do |c|
   c.syntax = 'ios profiles:manage:devices:remove PROFILE_NAME DEVICE_NAME=DEVICE_ID [...]'
   c.summary = 'Remove active devices from a Provisioning Profile.'
-  c.description = ''
 
   c.action do |args, options|
     profiles = try{agent.list_profiles(:development) + agent.list_profiles(:distribution)}
@@ -186,7 +180,6 @@ alias_command :'profiles:devices:remove', :'profiles:manage:devices:remove'
 command :'profiles:devices:list' do |c|
   c.syntax = 'ios profiles:devices:list [PROFILE_NAME]'
   c.summary = 'List devices for a development provisioning profile'
-  c.description = ''
 
   c.option '--type [TYPE]', [:development, :distribution], "Type of profile (development or distribution; defaults to development)"
 

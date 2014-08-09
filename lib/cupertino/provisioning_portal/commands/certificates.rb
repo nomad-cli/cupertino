@@ -1,7 +1,6 @@
 command :'certificates:list' do |c|
   c.syntax = 'ios certificates:list [development|distribution]'
   c.summary = 'Lists the Certificates'
-  c.description = ''
 
   c.action do |args, options|
     type = args.first.downcase.to_sym rescue nil
@@ -33,7 +32,6 @@ alias_command :certificates, :'certificates:list'
 command :'certificates:download' do |c|
   c.syntax = 'ios certificates:download [development|distribution]'
   c.summary = 'Downloads the Certificates'
-  c.description = ''
 
   c.action do |args, options|
     type = args.first.downcase.to_sym rescue nil

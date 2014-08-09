@@ -31,7 +31,7 @@ module Cupertino
 
       def username=(value)
           @username = value
-          
+
           pw = Security::InternetPassword.find(:a => self.username, :server => Cupertino::ProvisioningPortal::HOST)
           @password = pw.password if pw
       end
@@ -59,13 +59,13 @@ module Cupertino
 
       def list_certificates(type = :development)
         url = case type
-        when :development
-          "https://developer.apple.com/account/ios/certificate/certificateList.action?type=development"
-        when :distribution
-          "https://developer.apple.com/account/ios/certificate/certificateList.action?type=distribution"
-        else
-          raise ArgumentError, "Certificate type must be :development or :distribution"
-        end
+              when :development
+                "https://developer.apple.com/account/ios/certificate/certificateList.action?type=development"
+              when :distribution
+                "https://developer.apple.com/account/ios/certificate/certificateList.action?type=distribution"
+              else
+                raise ArgumentError, "Certificate type must be :development or :distribution"
+              end
 
         get(url)
 
@@ -259,7 +259,6 @@ module Cupertino
       end
 
       def list_devices_for_profile(profile)
-        
         devices = list_devices
 
         begin

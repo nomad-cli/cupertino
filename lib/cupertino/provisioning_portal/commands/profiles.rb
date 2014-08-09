@@ -218,9 +218,7 @@ command :'profiles:devices:list' do |c|
     table.align_column 2, :center
 
     puts table
-
   end
 end
 
 alias_command :'profiles:list_devices', :'profiles:manage:devices:list'
-

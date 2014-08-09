@@ -231,7 +231,7 @@ module Cupertino
         on, off = [], []
         page.search('dd.selectDevices div.rows div').each do |row|
           checkbox = row.search('input[type="checkbox"]').first
-          device = devices.detect{|device| device.device_id == checkbox['value']}
+          device = devices.detect{|d| d.device_id == checkbox['value']}
 
           if checkbox['checked']
             on << device
@@ -270,7 +270,7 @@ module Cupertino
         on, off = [], []
         page.search('dd.selectDevices div.rows div').each do |row|
           checkbox = row.search('input[type="checkbox"]').first
-          device = devices.detect{|device| device.device_id == checkbox['value']}
+          device = devices.detect{|d| d.device_id == checkbox['value']}
 
           if checkbox['checked']
             on << device

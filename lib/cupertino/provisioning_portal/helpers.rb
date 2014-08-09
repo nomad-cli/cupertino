@@ -29,7 +29,6 @@ module Cupertino
                 page.form_with(:name => 'saveTeamSelection').radiobuttons.each do |radio|
                   name = page.search(".label-primary[for=\"#{radio.dom_id}\"]").first.text.strip
                   programs = page.search(".label-secondary[for=\"#{radio.dom_id}\"]").first.text.strip.split(/\,\s+/)
-                  team_id = radio.value
                   teams << Team.new(name, programs, radio.value)
                 end
 

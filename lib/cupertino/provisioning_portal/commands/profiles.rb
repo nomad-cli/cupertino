@@ -1,3 +1,5 @@
+require 'time'
+
 command :'profiles:list' do |c|
   c.syntax = 'ios profiles:list'
   c.summary = 'Lists the Provisioning Profiles'
@@ -11,7 +13,7 @@ command :'profiles:list' do |c|
     say_warning "No #{type} provisioning profiles found." and abort if profiles.empty?
 
     table = Terminal::Table.new do |t|
-      t << ["Profile", "App ID", "Status"]
+      t << ["Profile", "App ID", "Expiration", "Status"]
       t.add_separator
       profiles.each do |profile|
         status = case profile.status
@@ -21,7 +23,7 @@ command :'profiles:list' do |c|
                    profile.status.green
                  end
 
-        t << [profile.name, profile.app_id, status]
+        t << [profile.name, profile.app_id, Time.parse(profile.expires).localtime, status]
       end
     end
 

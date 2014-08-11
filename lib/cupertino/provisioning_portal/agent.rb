@@ -204,6 +204,7 @@ module Cupertino
           profile.status = row['status']
           profile.download_url = "https://developer.apple.com/account/ios/profile/profileContentDownload.action?displayId=#{row['provisioningProfileId']}"
           profile.edit_url = "https://developer.apple.com/account/ios/profile/profileEdit.action?provisioningProfileId=#{row['provisioningProfileId']}"
+          profile.identifier = row['appId']['identifier']
           profiles << profile
         end
 
@@ -334,6 +335,7 @@ module Cupertino
           app_id = AppID.new
           app_id.bundle_seed_id = [row['prefix'], row['identifier']].join(".")
           app_id.description = row['name']
+          app_id.identifier = row['identifier']
 
           app_id.development_properties, app_id.distribution_properties = [], []
           row['features'].each do |feature, value|

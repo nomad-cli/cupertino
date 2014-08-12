@@ -290,9 +290,9 @@ module Cupertino
         form.method = 'POST'
         form.action = "https://developer.apple.com/account/ios/identifiers/bundle/bundleConfirm.action"
         form.field_with(:name => "appIdName").value = app_id.description
-        form.field_with(:name => "explicitIdentifier").value = app_id.bundle_seed_id
+        form.field_with(:name => "explicitIdentifier").value = app_id.identifier
         form.checkbox_with(:name => "push").check()
-        form.add_field!("appIdentifierString", app_id.bundle_seed_id)
+        form.add_field!("appIdentifierString", app_id.identifier)
         form.add_field!("formID", "#{rand(10000000)}")
         form.add_field!("clientToken", "undefined")
         form.submit
@@ -307,8 +307,8 @@ module Cupertino
           form.add_field!("gameCenter", "on")
           form.add_field!("push", "on")
 
-          form.add_field!("explicitIdentifier", app_id.bundle_seed_id)
-          form.add_field!("appIdentifierString", app_id.bundle_seed_id)
+          form.add_field!("explicitIdentifier", app_id.identifier)
+          form.add_field!("appIdentifierString", app_id.identifier)
           form.add_field!("appIdName", app_id.description)
           form.add_field!("type", "explicit")
 

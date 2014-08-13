@@ -1,5 +1,3 @@
-require 'time'
-
 command :'profiles:list' do |c|
   c.syntax = 'ios profiles:list'
   c.summary = 'Lists the Provisioning Profiles'
@@ -23,7 +21,7 @@ command :'profiles:list' do |c|
                    profile.status.green
                  end
 
-        t << [profile.name, profile.app_id, Time.parse(profile.expires).localtime, status]
+        t << [profile.name, profile.app_id, profile.expiration, status]
       end
     end
 

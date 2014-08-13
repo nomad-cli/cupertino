@@ -19,7 +19,7 @@ command :'certificates:list' do |c|
                      certificate.status.red
                  end
 
-        t << [certificate.name, certificate.type, certificate.expiration_date, status]
+        t << [certificate.name, certificate.type, certificate.expiration, status]
       end
     end
 

@@ -14,7 +14,7 @@ module Cupertino
       end
     end
 
-    class Certificate < Struct.new(:name, :type, :expiration_date, :status, :download_url)
+    class Certificate < Struct.new(:name, :type, :expiration, :status, :download_url)
       def to_s
         "#{self.name}"
       end
@@ -26,7 +26,7 @@ module Cupertino
       end
     end
 
-    class ProvisioningProfile < Struct.new(:name, :type, :app_id, :status, :expires, :download_url, :edit_url)
+    class ProvisioningProfile < Struct.new(:name, :type, :app_id, :status, :expiration, :download_url, :edit_url)
       def to_s
         "#{self.name}"
       end
@@ -38,7 +38,7 @@ module Cupertino
       end
     end
 
-    class PassCertificate < Struct.new(:name, :status, :expiration_date, :certificate_id)
+    class PassCertificate < Struct.new(:name, :status, :expiration, :certificate_id)
       def to_s
         "#{self.certificate_id}"
       end

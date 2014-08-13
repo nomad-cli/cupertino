@@ -179,8 +179,8 @@ end
 
 alias_command :'profiles:devices:remove', :'profiles:manage:devices:remove'
 
-command :'profiles:devices:list' do |c|
-  c.syntax = 'ios profiles:devices:list [NAME]'
+command :'profiles:manage:devices:list' do |c|
+  c.syntax = 'ios profiles:manage:devices:list [NAME]'
   c.summary = 'List devices for a development provisioning profile'
 
   c.option '--type [TYPE]', [:development, :distribution], "Type of profile (development or distribution; defaults to development)"

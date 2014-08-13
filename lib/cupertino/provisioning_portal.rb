@@ -38,12 +38,6 @@ module Cupertino
       end
     end
 
-    class PassCertificate < Struct.new(:name, :status, :expiration, :certificate_id)
-      def to_s
-        "#{self.certificate_id}"
-      end
-    end
-
     class Team < Struct.new(:name, :programs, :identifier)
       def to_s
         "#{self.name} (#{self.identifier})" + (" [#{self.programs.join(', ')}]" unless self.programs.empty?).to_s

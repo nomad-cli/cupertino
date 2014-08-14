@@ -2,6 +2,8 @@ require 'mechanize'
 require 'security'
 require 'uri'
 require 'json'
+require 'date'
+require 'time'
 require 'logger'
 
 module Cupertino
@@ -90,7 +92,7 @@ module Cupertino
           certificate.name = row['name']
           certificate.type = type
           certificate.download_url = "https://developer.apple.com/account/ios/certificate/certificateContentDownload.action?displayId=#{row['certificateId']}&type=#{row['certificateTypeDisplayId']}"
-          certificate.expiration_date = row['expirationDateString']
+          certificate.expiration = (Date.parse(row['expirationDateString']) rescue nil)
           certificate.status = row['statusString']
           certificates << certificate
         end
@@ -202,6 +204,7 @@ module Cupertino
           profile.type = type
           profile.app_id = row['appId']['appIdId']
           profile.status = row['status']
+          profile.expiration = (Time.parse(row['dateExpire']) rescue nil)
           profile.download_url = "https://developer.apple.com/account/ios/profile/profileContentDownload.action?displayId=#{row['provisioningProfileId']}"
           profile.edit_url = "https://developer.apple.com/account/ios/profile/profileEdit.action?provisioningProfileId=#{row['provisioningProfileId']}"
           profile.identifier = row['appId']['identifier']

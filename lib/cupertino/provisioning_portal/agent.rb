@@ -13,7 +13,7 @@ module Cupertino
 
       def initialize
         super
-
+        @profile_csrf_headers = {}
         self.user_agent_alias = 'Mac Safari'
 
         self.log ||= Logger.new(STDOUT)
@@ -193,6 +193,10 @@ module Cupertino
                             end
 
         post(profile_data_url)
+        @profile_csrf_headers = {
+          'csrf' => page.response['csrf'],
+          'csrf_ts' => page.response['csrf_ts']
+        }
 
         profile_data = page.content
         parsed_profile_data = JSON.parse(profile_data)
@@ -258,7 +262,7 @@ module Cupertino
         form.add_field!('adssuv-value', Mechanize::Util::uri_unescape(adssuv.value))
 
         form.method = 'POST'
-        form.submit
+        form.submit(nil, @profile_csrf_headers)
       end
 
       def list_devices_for_profile(profile)

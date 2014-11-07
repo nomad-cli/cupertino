@@ -194,6 +194,9 @@ module Cupertino
 
         post(profile_data_url)
 
+        regex = /.*\/(.*).action/
+        profile_details_url = profile_data_url.gsub(regex.match(profile_data_url)[1], 'getProvisioningProfile')
+
         profile_data = page.content
         parsed_profile_data = JSON.parse(profile_data)
 
@@ -202,7 +205,12 @@ module Cupertino
           profile = ProvisioningProfile.new
           profile.name = row['name']
           profile.type = type
-          profile.app_id = row['appId']['appIdId']
+          
+          subpage = post(profile_details_url, "provisioningProfileId" => "#{row['provisioningProfileId']}")
+          profile_details = subpage.content
+          parserd_profile_details = JSON.parse(profile_details)
+          profile.app_id = parserd_profile_details["provisioningProfile"]["appIdId"]
+          
           profile.status = row['status']
           profile.expiration = (Time.parse(row['dateExpire']) rescue nil)
           profile.download_url = "https://developer.apple.com/account/ios/profile/profileContentDownload.action?displayId=#{row['provisioningProfileId']}"

@@ -20,13 +20,13 @@ module Cupertino
       end
     end
 
-    class AppID < Struct.new(:bundle_seed_id, :description, :development_properties, :distribution_properties)
+    class AppID < Struct.new(:bundle_seed_id, :description, :development_properties, :distribution_properties, :identifier)
       def to_s
         "#{self.bundle_seed_id}"
       end
     end
 
-    class ProvisioningProfile < Struct.new(:name, :type, :app_id, :status, :expiration, :download_url, :edit_url)
+    class ProvisioningProfile < Struct.new(:name, :type, :app_id, :status, :expiration, :download_url, :edit_url, :identifier)
       def to_s
         "#{self.name}"
       end

@@ -48,9 +48,9 @@ command :'app_ids:add' do |c|
       say_warning "Invalid argument #{arg}, must be in form NAME=BUNDLE_ID" and next unless components.length == 2
       app_id = AppID.new
       app_id.description = components.first
-      app_id.bundle_seed_id = components.last
+      app_id.identifier = components.last
       agent.add_app_id(app_id)
-      say_ok "Successfully added App ID #{app_id.bundle_seed_id}"
+      say_ok "Successfully added App ID #{app_id.identifier}"
     end
   end
 end

@@ -198,6 +198,11 @@ module Cupertino
           'csrf_ts' => page.response['csrf_ts']
         }
 
+        @profile_csrf_headers = {
+          'csrf' => page.response['csrf'],
+          'csrf_ts' => page.response['csrf_ts']
+        }
+
         profile_data = page.content
         parsed_profile_data = JSON.parse(profile_data)
 
@@ -261,7 +266,11 @@ module Cupertino
         form.add_field!('adssuv-value', Mechanize::Util::uri_unescape(adssuv.value))
 
         form.method = 'POST'
+<<<<<<< HEAD
         form.submit(nil, @profile_csrf_headers)
+=======
+        form.submit(nil, @profile_csrf_headers || {})
+>>>>>>> Remove unnecessary initialization of @profile_csrf_headers
       end
 
       def list_devices_for_profile(profile)

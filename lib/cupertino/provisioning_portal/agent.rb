@@ -202,7 +202,6 @@ module Cupertino
           profile = ProvisioningProfile.new
           profile.name = row['name']
           profile.type = type
-          profile.app_id = row['appId']['appIdId']
           profile.status = row['status']
           profile.expiration = (Time.parse(row['dateExpire']) rescue nil)
           profile.download_url = "https://developer.apple.com/account/ios/profile/profileContentDownload.action?displayId=#{row['provisioningProfileId']}"

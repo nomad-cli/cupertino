@@ -215,7 +215,7 @@ module Cupertino
           profile.expiration = (Time.parse(row['dateExpire']) rescue nil)
           profile.download_url = "https://developer.apple.com/account/ios/profile/profileContentDownload.action?displayId=#{row['provisioningProfileId']}"
           profile.edit_url = "https://developer.apple.com/account/ios/profile/profileEdit.action?provisioningProfileId=#{row['provisioningProfileId']}"
-          profile.identifier = row['appId']['identifier']
+          profile.identifier = row['UUID']
           profiles << profile
         end
 

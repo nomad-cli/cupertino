@@ -7,25 +7,37 @@ command :'profiles:list' do |c|
   c.action do |args, options|
     type = (options.type.downcase.to_sym if options.type) || :development
     profiles = try{agent.list_profiles(type)}
-
-    say_warning "No #{type} provisioning profiles found." and abort if profiles.empty?
-
-    table = Terminal::Table.new do |t|
-      t << ["Profile", "App ID", "Expiration", "Status"]
-      t.add_separator
-      profiles.each do |profile|
-        status = case profile.status
-                 when "Invalid"
-                   profile.status.red
-                 else
-                   profile.status.green
-                 end
-
-        t << [profile.name, profile.app_id, profile.expiration, status]
+    
+    if (agent.format == "csv")
+      csv_string = CSV.generate do |csv|
+          csv << ["Profile", "App ID", "UUID", "Expiration", "Status"]
+          
+          profiles.each do |profile|
+              csv << [profile.name, profile.app_id, profile.identifier, profile.expiration, profile.status]
+          end
       end
-    end
+      
+      puts csv_string
+    else
+      say_warning "No #{type} provisioning profiles found." and abort if profiles.empty?
 
-    puts table
+      table = Terminal::Table.new do |t|
+        t << ["Profile", "App ID", "UUID", "Expiration", "Status"]
+        t.add_separator
+        profiles.each do |profile|
+          status = case profile.status
+                   when "Invalid"
+                     profile.status.red
+                   else
+                     profile.status.green
+                   end
+
+          t << [profile.name, profile.app_id, profile.identifier, profile.expiration, status]
+        end
+      end
+
+      puts table
+    end
   end
 end
 

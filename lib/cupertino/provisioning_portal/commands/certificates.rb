@@ -6,24 +6,36 @@ command :'certificates:list' do |c|
     type = args.first.downcase.to_sym rescue nil
     certificates = try{agent.list_certificates(type ||= :development)}
 
-    say_warning "No #{type} certificates found." and abort if certificates.empty?
+    if (agent.format == "csv")
+      csv_string = CSV.generate do |csv|
+        csv << ["Name", "Type", "Expiration Date", "Status"]
 
-    table = Terminal::Table.new do |t|
-      t << ["Name", "Type", "Expiration Date", "Status"]
-      t.add_separator
-      certificates.each do |certificate|
-        status = case certificate.status
-                   when "Issued"
-                     certificate.status.green
-                   else
-                     certificate.status.red
-                 end
-
-        t << [certificate.name, certificate.type, certificate.expiration, status]
+        certificates.each do |certificate|
+          csv << [certificate.name, certificate.type, certificate.expiration, certificate.status]
+        end
       end
-    end
 
-    puts table
+      puts csv_string
+    else
+      say_warning "No #{type} certificates found." and abort if certificates.empty?
+
+      table = Terminal::Table.new do |t|
+        t << ["Name", "Type", "Expiration Date", "Status"]
+        t.add_separator
+        certificates.each do |certificate|
+          status = case certificate.status
+                     when "Issued"
+                       certificate.status.green
+                     else
+                       certificate.status.red
+                   end
+
+          t << [certificate.name, certificate.type, certificate.expiration, status]
+        end
+      end
+
+      puts table
+    end
   end
 end
 

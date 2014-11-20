@@ -5,23 +5,35 @@ command :'devices:list' do |c|
   c.action do |args, options|
     devices = try{agent.list_devices}
 
-    number_of_devices = devices.compact.length
-    number_of_additional_devices = devices.length - number_of_devices
+    if (agent.format == "csv")
+      csv_string = CSV.generate do |csv|
+        csv << ["Device Name", "Device Identifier", "Enabled"]
 
-    title = "Listing #{pluralize(number_of_devices, 'device')} "
-    title += "(You can register #{pluralize(number_of_additional_devices, 'additional device')})" if number_of_additional_devices > 0
-
-    table = Terminal::Table.new :title => title do |t|
-      t << ["Device Name", "Device Identifier", "Enabled"]
-      t.add_separator
-      devices.compact.each do |device|
-        t << [device.name, device.udid, device.enabled]
+        devices.compact.each do |device|
+          csv << [device.name, device.udid, device.enabled]
+        end
       end
+
+      puts csv_string
+    else
+      number_of_devices = devices.compact.length
+      number_of_additional_devices = devices.length - number_of_devices
+
+      title = "Listing #{pluralize(number_of_devices, 'device')} "
+      title += "(You can register #{pluralize(number_of_additional_devices, 'additional device')})" if number_of_additional_devices > 0
+
+      table = Terminal::Table.new :title => title do |t|
+        t << ["Device Name", "Device Identifier", "Enabled"]
+        t.add_separator
+        devices.compact.each do |device|
+          t << [device.name, device.udid, device.enabled]
+        end
+      end
+
+      table.align_column 2, :center
+
+      puts table
     end
-
-    table.align_column 2, :center
-
-    puts table
   end
 end
 

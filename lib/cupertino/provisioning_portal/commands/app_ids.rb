@@ -11,26 +11,38 @@ command :'app_ids:list' do |c|
   c.action do |args, options|
     app_ids = try{agent.list_app_ids}
 
-    title = "Legend: #{COLORS_BY_PROPERTY_VALUES.collect{|k, v| k.send(v)}.join(', ')}"
-    table = Terminal::Table.new :title => title do |t|
-      t << ["Bundle Seed ID", "Description", "Development", "Distribution"]
-      app_ids.each do |app_id|
-        t << :separator
+    if (agent.format == "csv")
+      csv_string = CSV.generate do |csv|
+        csv << ["Bundle Seed ID", "Description"]
 
-        row = [app_id.bundle_seed_id, app_id.description]
-        [app_id.development_properties, app_id.distribution_properties].each do |properties|
-          values = []
-          properties.each do |key, value|
-            color = COLORS_BY_PROPERTY_VALUES[value] || :reset
-            values << key.sub(/\:$/, "").send(color)
-          end
-          row << values.join("\n")
+        app_ids.each do |app_id|
+          csv << [app_id.bundle_seed_id, app_id.description]
         end
-        t << row
       end
-    end
 
-    puts table
+      puts csv_string
+    else
+      title = "Legend: #{COLORS_BY_PROPERTY_VALUES.collect{|k, v| k.send(v)}.join(', ')}"
+      table = Terminal::Table.new :title => title do |t|
+        t << ["Bundle Seed ID", "Description", "Development", "Distribution"]
+        app_ids.each do |app_id|
+          t << :separator
+
+          row = [app_id.bundle_seed_id, app_id.description]
+          [app_id.development_properties, app_id.distribution_properties].each do |properties|
+            values = []
+            properties.each do |key, value|
+              color = COLORS_BY_PROPERTY_VALUES[value] || :reset
+              values << key.sub(/\:$/, "").send(color)
+            end
+            row << values.join("\n")
+          end
+          t << row
+        end
+      end
+
+      puts table
+    end
   end
 end
 

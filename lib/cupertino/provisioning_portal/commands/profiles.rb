@@ -10,22 +10,33 @@ command :'profiles:list' do |c|
 
     say_warning "No #{type} provisioning profiles found." and abort if profiles.empty?
 
-    table = Terminal::Table.new do |t|
-      t << ["Profile", "App ID", "Expiration", "Status"]
-      t.add_separator
-      profiles.each do |profile|
-        status = case profile.status
-                 when "Invalid"
-                   profile.status.red
-                 else
-                   profile.status.green
+    output = case options.format
+             when :csv
+               CSV.generate do |csv|
+                 csv << ["Profile", "App ID", "UUID", "Expiration", "Status"]
+
+                 profiles.each do |profile|
+                   csv << [profile.name, profile.app_id, profile.identifier, profile.expiration, profile.status]
                  end
+               end
+             else
+               Terminal::Table.new do |t|
+                 t << ["Profile", "App ID", "UUID", "Expiration", "Status"]
+                 t.add_separator
+                 profiles.each do |profile|
+                   status = case profile.status
+                            when "Invalid"
+                              profile.status.red
+                            else
+                              profile.status.green
+                            end
 
-        t << [profile.name, profile.app_id, profile.expiration, status]
-      end
-    end
+                   t << [profile.name, profile.app_id, profile.identifier, profile.expiration, status]
+                 end
+               end
+             end
 
-    puts table
+    puts output
   end
 end
 
@@ -196,22 +207,34 @@ command :'profiles:manage:devices:list' do |c|
 
     list = agent.list_devices_for_profile(profile)
 
-    title = "Listing devices for provisioning profile #{profile.name}"
+    output = case options.format
+             when :csv
+               CSV.generate do |csv|
+                 csv << ["Device Name", "Device Identifier", "Active"]
 
-    table = Terminal::Table.new :title => title do |t|
-      t << ["Device Name", "Device Identifier", "Active"]
-      t.add_separator
-      list[:on].each do |device|
-        t << [device.name, device.udid, "Y"]
-      end
-      list[:off].each do |device|
-        t << [device.name, device.udid, "N"]
-      end
-    end
+                 list.values.each do |devices|
+                   devices.each do |device|
+                     csv << [device.name, device.udid, "Y"]
+                   end
+                 end
+               end
+             else
+                title = "Listing devices for provisioning profile #{profile.name}"
+                Terminal::Table.new :title => title do |t|
+                  t << ["Device Name", "Device Identifier", "Active"]
+                  t.add_separator
+                  list[:on].each do |device|
+                    t << [device.name, device.udid, "Y"]
+                  end
+                  list[:off].each do |device|
+                    t << [device.name, device.udid, "N"]
+                  end
 
-    table.align_column 2, :center
+                  t.align_column 2, :center
+                end
+            end
 
-    puts table
+    puts output
   end
 end
 

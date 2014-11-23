@@ -8,22 +8,33 @@ command :'certificates:list' do |c|
 
     say_warning "No #{type} certificates found." and abort if certificates.empty?
 
-    table = Terminal::Table.new do |t|
-      t << ["Name", "Type", "Expiration Date", "Status"]
-      t.add_separator
-      certificates.each do |certificate|
-        status = case certificate.status
-                   when "Issued"
-                     certificate.status.green
-                   else
-                     certificate.status.red
+    output = case options.format
+             when :csv
+               CSV.generate do |csv|
+                 csv << ["Name", "Type", "Expiration Date", "Status"]
+
+                 certificates.each do |certificate|
+                   csv << [certificate.name, certificate.type, certificate.expiration, certificate.status]
                  end
+               end
+             else
+               Terminal::Table.new do |t|
+                 t << ["Name", "Type", "Expiration Date", "Status"]
+                 t.add_separator
+                 certificates.each do |certificate|
+                   status = case certificate.status
+                              when "Issued"
+                                certificate.status.green
+                              else
+                                certificate.status.red
+                            end
 
-        t << [certificate.name, certificate.type, certificate.expiration, status]
-      end
-    end
+                   t << [certificate.name, certificate.type, certificate.expiration, status]
+                 end
+               end
+             end
 
-    puts table
+    puts output
   end
 end
 

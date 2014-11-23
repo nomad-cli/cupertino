@@ -3,6 +3,7 @@
 require 'commander/import'
 require 'terminal-table'
 require 'term/ansicolor'
+require 'csv'
 
 require 'cupertino'
 

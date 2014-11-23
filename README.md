@@ -139,6 +139,15 @@ $ ios certificates:download --type distribution
 $ ios certificates:download NAME
 ```
 
+## CSV Output
+
+The following commands will format their output as [comma-separated values](http://en.wikipedia.org/wiki/Comma-separated_values) when the `--format csv` argument is passed:
+
+- `app_ids:list`
+- `devices:list`
+- `profiles:list`
+- `profiles:manage:devices:list`
+
 ## Commands
 
 - `login`
@@ -155,16 +164,6 @@ $ ios certificates:download NAME
 - `certificates:list`
 - `certificates:download`
 - `app_ids:list`
-
-### Disabled Commands
-
-> With the latest updates to the Apple Developer Portal, the following functionality has been removed.
-
-- `pass_type_ids:list`
-- `pass_type_ids:add`
-- `pass_type_ids:certificates:list`
-- `pass_type_ids:certificates:add`
-- `pass_type_ids:certificates:download`
 
 ## Proxies
 

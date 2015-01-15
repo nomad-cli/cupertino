@@ -139,6 +139,16 @@ $ ios certificates:download --type distribution
 $ ios certificates:download NAME
 ```
 
+```
+$ ios certificates:create request.csr
+$ ios certificates:create --type devpush request.csr 123ABCDEFG.com.mattt.bundle
+$ ios certificates:create --type production request.csr
+$ ios certificates:create --type prodpush request.csr 123ABCDEFG.com.mattt.bundle
+$ ios certificates:create --type TYPE CSR APPID
+
+```
+
+
 ## CSV Output
 
 The following commands will format their output as [comma-separated values](http://en.wikipedia.org/wiki/Comma-separated_values) when the `--format csv` argument is passed:
@@ -163,6 +173,7 @@ The following commands will format their output as [comma-separated values](http
 - `profiles:devices:list`
 - `certificates:list`
 - `certificates:download`
+- `certificates:create`
 - `app_ids:list`
 
 ## Proxies

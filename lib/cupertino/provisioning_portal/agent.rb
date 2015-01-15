@@ -368,38 +368,36 @@ module Cupertino
       def add_app_id(app_id)
         get("https://developer.apple.com/account/ios/identifiers/bundle/bundleCreate.action")
 
-        form = page.form_with(:name => 'bundleSave') or raise UnexpectedContentError
+        form = page.form_with(name: 'bundleSave') or raise UnexpectedContentError
         form.method = 'POST'
         form.action = "https://developer.apple.com/account/ios/identifiers/bundle/bundleConfirm.action"
-        form.field_with(:name => "appIdName").value = app_id.description
-        form.field_with(:name => "explicitIdentifier").value = app_id.identifier
-        form.checkbox_with(:name => "push").check()
         form.add_field!("appIdentifierString", app_id.identifier)
+        form.field_with(name: "appIdName").value = app_id.description
+        form.add_field!("type", "explicit")
+        form.field_with(name: "explicitIdentifier").value = app_id.identifier
+        form.checkbox_with(name: "push").check
+        adssuv = cookies.find{|cookie| cookie.name == 'adssuv'}
+        form.add_field!("adssuv-value", Mechanize::Util::uri_unescape(adssuv.value))
         form.add_field!("formID", "#{rand(10000000)}")
         form.add_field!("clientToken", "undefined")
         form.submit
 
-        if form = page.form_with(:name => 'bundleSubmit')
-          form.method = 'POST'
-
-          adssuv = cookies.find{|cookie| cookie.name == 'adssuv'}
-          form.add_field!("adssuv-value", Mechanize::Util::uri_unescape(adssuv.value))
-
-          form.add_field!("inAppPurchase", "on")
-          form.add_field!("gameCenter", "on")
-          form.add_field!("push", "on")
-
-          form.add_field!("explicitIdentifier", app_id.identifier)
-          form.add_field!("appIdentifierString", app_id.identifier)
-          form.add_field!("appIdName", app_id.description)
-          form.add_field!("type", "explicit")
-
-          form.submit
-        elsif form = page.form_with(:name => 'bundleSave')
-          form.submit
-        else
-          raise UnexpectedContentError
-        end
+        form = page.form_with(name: 'bundleSubmit') or raise UnexpectedContentError
+        form.method = 'POST'
+        form.action = "https://developer.apple.com/account/ios/identifiers/bundle/bundleComplete.action"
+        adssuv = cookies.find{|cookie| cookie.name == 'adssuv'}
+        form.add_field!("adssuv-value", Mechanize::Util::uri_unescape(adssuv.value))
+        form.add_field!("push", "on")
+        form.add_field!("inAppPurchase", "on")
+        form.add_field!("gameCenter", "on")
+        form.add_field!("explicitIdentifier", app_id.identifier)
+        form.add_field!("type", "explicit")
+        form.add_field!("appIdName", app_id.description)
+        form.add_field!("appIdentifierString", app_id.identifier)
+        form.add_field!("formID", "#{rand(100000000)}")
+        form.add_field!("clientToken", "undefined")
+        
+        form.submit
       end
 
       def list_app_ids

@@ -60,3 +60,30 @@ command :'certificates:download' do |c|
     end
   end
 end
+
+command :'certificates:create' do |c|
+  c.syntax = 'ios certificates:create [CSR] [APPID]'
+  c.summary = 'Adds a certificate to the Provisioning Portal'
+
+  c.option '--type [TYPE]', [:development, :production, :devpush, :prodpush, :voip], "Type of profile (development, devpush, production, prodpush, voip; defaults to development)"
+
+  c.action do |args, options|
+    say_error "Missing arguments, expected [CSR] (APPID)" and abort if args.nil? or args.empty?
+    type = (options.type.downcase.to_sym if options.type) || :development
+    filename = args[0]
+    extra_id = (args[1] if args.length == 2) || nil
+
+    pre_certs = agent.list_certificates(:development) + agent.list_certificates(:distribution)
+
+    agent.create_certificate(type, filename, extra_id)
+    say_ok "Assuming created certificate from CSR #{filename} as a #{type} certificate, waiting a few seconds to download."
+    sleep 5 #wait a few seconds to download
+    post_certs = agent.list_certificates(:development) + agent.list_certificates(:distribution)
+    certificate = (post_certs - pre_certs).first
+
+    agent.download_certificate(certificate)
+
+    say_ok "Downloaded created certificate #{certificate}."
+
+  end
+end

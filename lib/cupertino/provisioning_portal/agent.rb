@@ -100,6 +100,77 @@ module Cupertino
         certificates
       end
 
+      def create_certificate(type, filename, extra_id)
+        get("https://developer.apple.com/account/ios/certificate/certificateCreate.action")
+        form_type = case type
+                    when :development
+                      "5QPB9NHCEI"
+                    when :devpush
+                      "BKLRAVXMGM"
+                    when :production
+                      "R58UK2EWSO"
+                    when :prodpush
+                      "3BQKVH9I2X"
+                    # when :passtype
+                    #   "Y3B2F3TYSI" #pass type ID needed
+                    # when :webpush
+                    #   "3T2ZP62QW8" #website push ID needed
+                    when :voip
+                      "E5D663CMZW"
+                    # when :applepay
+                    #   "4APLUP237T" #merchant ID needed
+                    else
+                      raise ArgumentError, "Certificate type must be :development, :devpush, :production, :prodpush, :voip"
+                    end
+
+        #Make sure file is valid before hitting Apple's servers
+        file = ::File.open(filename)
+
+        #Select Type Page
+        form = page.form_with(name: 'certificateSave') or raise UnexpectedContentError
+        form.method = 'POST'
+        if(type == :devpush or type == :prodpush or type == :voip)
+          form.action = "https://developer.apple.com/account/ios/certificate/certificateCreatePush.action" 
+        else
+          form.action = "https://developer.apple.com/account/ios/certificate/certificateRequest.action"
+        end
+        form.radiobutton_with(value: form_type).check()
+        form.add_field!("formID", "#{rand(100000000)}")
+        form.add_field!("clientToken", "undefined")
+        form.submit
+
+        #Select Type Page #2 (for Certificate Types which require AppID)
+        if(type == :devpush or type == :prodpush or type == :voip)
+          form = page.form_with(action: "https://developer.apple.com/account/ios/certificate/certificateCreatePush.action") or raise UnexpectedContentError
+          form.method = "POST"
+          form.action = "https://developer.apple.com/account/ios/certificate/certificateRequest.action"
+          form.field_with(name: "appIdId").option_with(text: extra_id).click
+          extra_id = form.field_with(name: "appIdId").option_with(text: extra_id).value
+          form.add_field!("types", form_type)
+          form.add_field!("formID", "#{rand(100000000)}")
+          form.submit
+        end
+
+        #Request Page
+        form = page.form_with(name: 'certificateRequest') or raise UnexpectedContentError
+        form.method = 'POST'
+        form.action = "https://developer.apple.com/account/ios/certificate/certificateGenerate.action"
+        form.add_field!("types", form_type)
+        form.add_field!("formID", "#{rand(100000000)}")
+        form.submit
+
+        #Generate Page
+        form = page.form_with(name: 'certificateGenerate') or raise UnexpectedContentError
+        form.method = 'POST'
+        form.action = "https://developer.apple.com/account/ios/certificate/certificateSubmit.action"
+        upload = form.file_uploads.first
+        upload.file_name = file.path
+        if(type == :devpush or type == :prodpush or type == :voip)
+          form.field_with(name: "appIdId").value = extra_id
+        end
+        form.submit
+      end
+
       def download_certificate(certificate)
         list_certificates(certificate.type)
 

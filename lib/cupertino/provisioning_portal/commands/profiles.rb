@@ -86,6 +86,24 @@ command :'profiles:download:all' do |c|
   end
 end
 
+command :'profiles:create' do |c|
+  c.syntax = 'ios profiles:create [NAME] [APPID]'
+  c.summary = 'Create a Provisioning Profile'
+
+  c.option '--type [TYPE]', [:development, :appstore, :adhoc], "Type of profile (development, appstore, or adhoc); defaults to development"
+  c.option '--certificateid [CERTIFICATEID]', "Backend Certificate ID, output from certificate:getid"
+
+  c.action do |args, options|
+    say_error "Missing arguments, expected [NAME] [APPID]" and abort if args.nil? or args.length != 2
+    type = (options.type.downcase.to_sym if options.type) || :development
+    certificate_id = (options.certificateid.downcase.to_sym if options.certificateid) || nil
+    name, app_id = args
+
+    profile = agent.create_profile(name,type,app_id, certificate_id)
+    say_ok "Assuming created profile, waiting a few seconds to download."
+  end
+end
+
 command :'profiles:manage:devices' do |c|
   c.syntax = 'ios profiles:manage:devices [PROFILE_NAME]'
   c.summary = 'Manage active devices for a development provisioning profile'

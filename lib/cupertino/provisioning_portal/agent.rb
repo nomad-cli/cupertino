@@ -293,6 +293,113 @@ module Cupertino
         profiles
       end
 
+      def create_profile(name, type, app_id, certificate_id)
+        get("https://developer.apple.com/account/ios/profile/profileCreate.action")
+        form_type = case type
+                    when :development
+                      "limited"
+                    when :appstore
+                      "store"
+                    when :adhoc
+                      "adhoc"
+                    else
+                      raise ArgumentError, "Certificate type must be :development, :appstore, :adhoc"
+                    end
+
+        #Profile Type Selection
+        form = page.form_with(action: 'https://developer.apple.com/account/ios/profile/profileCreate.action') or raise UnexpectedContentError
+        form.method = 'POST'
+        form.action = "https://developer.apple.com/account/ios/profile/profileCreateApp.action" 
+        form.radiobutton_with(value: form_type).check()
+        form.add_field!("formID", "#{rand(100000000)}")
+        form.submit
+
+        #App ID Selection
+        form = page.form_with(action: "https://developer.apple.com/account/ios/profile/profileCreateApp.action") or raise UnexpectedContentError
+        form.method = "POST"
+        form.action = "https://developer.apple.com/account/ios/profile/profileCreateCertificates.action"
+        form.add_field!("distributionType", form_type)
+        form.add_field!("formID", "#{rand(100000000)}")
+        form.field_with(name: "appIdId").option_with(text: /#{Regexp.escape(app_id)}/).click
+        app_id_field = form.field_with(name: "appIdId").option_with(text: /#{Regexp.escape(app_id)}/)
+        app_id = app_id_field.value
+        app_id_name = app_id_field.text[ /.*(?= \()/ ]
+        app_id_prefix = app_id_field.text[ /[A-Z0-9]*(?=\.)/ ]
+        app_id_identifier = app_id_field.text[ /\.[^)]+/ ][1..-1]
+        form.submit
+
+        #Certificates Selection
+        form = page.form_with(action: "https://developer.apple.com/account/ios/profile/profileCreateCertificates.action") or raise UnexpectedContentError
+        form.method = "POST"
+        form.action = "https://developer.apple.com/account/ios/profile/profileCreateDevices.action"
+        form.add_field!("distributionType", form_type)
+        form.add_field!("appIdId", app_id)
+        form.add_field!("appIdName", app_id_name)
+        form.add_field!("appIdPrefix", app_id_prefix)
+        form.add_field!("appIdIdentifier", app_id_identifier)
+        if certificate_id
+          certificate_ids = "[" + certificate_id + "]"
+          form.add_field!("certificateCount", 1)
+          form.checkboxes_with(name: "certificates", value: certificate_id).check
+          certificate_fields = form.checkboxes_with(name: "certificates", value: certificate_id)
+        else
+          certificate_ids = "[" + form.checkboxes.map(&:value).join(",") + "]"
+          form.add_field!("certificateCount", form.checkboxes.count)
+          form.checkboxes_with(name: "certificates").each do |cb|
+            cb.check
+          end
+          certificate_fields = form.checkboxes_with(name: "certificates")
+        end
+        
+        form.add_field!("certificateIds", certificate_ids)
+        form.add_field!("template", "")
+        form.add_field!("formID", "#{rand(100000000)}")
+        form.submit
+
+        #Devices Selection
+        form = page.form_with(action: "https://developer.apple.com/account/ios/profile/profileCreateDevices.action") or raise UnexpectedContentError
+        form.method = "POST"
+        form.action = "https://developer.apple.com/account/ios/profile/profileCreateName.action"
+        form.add_field!("distributionType", form_type)
+        form.add_field!("appIdId", app_id)
+        form.add_field!("appIdName", app_id_name)
+        form.add_field!("appIdPrefix", app_id_prefix)
+        form.add_field!("appIdIdentifier", app_id_identifier)
+        form.add_field!("returnFullObjects", "false")
+        form.checkboxes_with(name: "devices").each do |cb|
+          cb.check
+        end
+        device_fields = form.checkboxes_with(name: "devices")
+        # device_ids = "[" + form.checkboxes_with(name: "devices").map(&:value).join(",") + "]"
+        form.add_field!("template", "")
+        form.add_field!("formID", "#{rand(100000000)}")
+        form.submit
+
+        #Name & Generate Profile
+        form = page.form_with(name: "profileSubmit") or raise UnexpectedContentError
+        form.method = "POST"
+        form.field_with(name: "provisioningProfileName").value = name
+        form.add_field!("distributionType", form_type)
+        form.add_field!("appIdId", app_id)
+        # form.add_field!("appIdName", app_id_name)
+        # form.add_field!("appIdPrefix", app_id_prefix)
+        # form.add_field!("appIdIdentifier", app_id_identifier)
+        adssuv = cookies.find{|cookie| cookie.name == 'adssuv'}
+        form.add_field!('adssuv-value', Mechanize::Util::uri_unescape(adssuv.value))
+        device_fields.each do |cb|
+          form.add_field!("devices", cb.value)
+        end
+        # form.add_field!("deviceCount", device_fields.count)
+        certificate_fields.each do |cb|
+          form.add_field!("certificates", cb.value)
+        end
+        # form.add_field!("certificateCount", certificate_fields.count)
+        
+        form.submit
+        byebug
+
+      end
+
       def download_profile(profile)
         self.pluggable_parser.default = Mechanize::Download
         download = get(profile.download_url)

@@ -61,6 +61,18 @@ command :'certificates:download' do |c|
   end
 end
 
+command :'certificates:getid' do |c|
+  c.syntax = 'ios certificates:getid [NAME]'
+  c.summary = 'Gets the ADC ID of a Certificate by Name'
+
+  c.action do |args, options|
+    say_error "Missing arguments, expected [NAME]" and abort if args.nil? or args.empty?
+    name = args[0]
+
+    say_error "This is not implemented yet"
+  end
+end
+
 command :'certificates:create' do |c|
   c.syntax = 'ios certificates:create [CSR] [APPID]'
   c.summary = 'Adds a certificate to the Provisioning Portal'

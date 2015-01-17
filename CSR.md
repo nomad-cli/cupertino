@@ -2,7 +2,7 @@
 
 ## Generate Certificate Signing Request
 
-### Option 1 - OSX Keychain
+### Option 1 - OSX Keychain & Security Tools
 Generate the RSA keypair in the login keychain in OSX
 ```
 $ security create-keypair -s 2048 [name]
@@ -13,7 +13,7 @@ Generate the CSR based on key in keychain
 $ certtool r outputFileName [options]
 ```
 
-### Option 2 - Local Directory
+### Option 2 - Linux Tools
 
 1. Generate the RSA keypair
 Example:

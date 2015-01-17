@@ -78,24 +78,54 @@ command :'certificates:create' do |c|
   c.summary = 'Adds a certificate to the Provisioning Portal'
 
   c.option '--type [TYPE]', [:development, :production, :devpush, :prodpush, :voip], "Type of profile (development, devpush, production, prodpush, voip; defaults to development)"
+  c.option '--download', "Downloads Certificate Created"
+  c.option '--internalid', "Outputs the Internal ID of the Created Certificate"
 
   c.action do |args, options|
     say_error "Missing arguments, expected [CSR] (APPID)" and abort if args.nil? or args.empty?
     type = (options.type.downcase.to_sym if options.type) || :development
     filename = args[0]
     extra_id = (args[1] if args.length == 2) || nil
+    certificate = nil
 
-    pre_certs = agent.list_certificates(:development) + agent.list_certificates(:distribution)
+    if options.download or options.internalid
+      pre_certs = agent.list_certificates(:development) + agent.list_certificates(:distribution)
+    end
 
-    agent.create_certificate(type, filename, extra_id)
-    say_ok "Assuming created certificate from CSR #{filename} as a #{type} certificate, waiting a few seconds to download."
-    sleep 5 #wait a few seconds to download
-    post_certs = agent.list_certificates(:development) + agent.list_certificates(:distribution)
-    certificate = (post_certs - pre_certs).first
+    agent.create_certificate(type, filename, extra_id)    
+    if options.download
+      say_ok "Assuming created certificate from CSR #{filename} as a #{type} certificate, waiting a few seconds to download." unless options.internalid
+      5.times do
+        sleep 3 #wait a few seconds for the certificate to generate
+        post_certs = agent.list_certificates(:development) + agent.list_certificates(:distribution)
+        certificate = (post_certs - pre_certs).first
+        if certificate
+          agent.download_certificate(certificate)
+          say_ok "Downloaded created certificate #{certificate}." unless options.internalid
+          break
+        end
+      end
+      unless certificate
+        say_error "Could not download the created certificate over 5 tries." and abort
+      end
+    else
+      say_ok "Assuming created certificate from CSR #{filename} as a #{type} certificate." unless options.internalid
+    end
 
-    agent.download_certificate(certificate)
-
-    say_ok "Downloaded created certificate #{certificate}."
-
+    if options.internalid
+      unless certificate
+        5.times do
+          sleep 3 #wait a few seconds for the certificate to generate
+          post_certs = agent.list_certificates(:development) + agent.list_certificates(:distribution)
+          certificate = (post_certs - pre_certs).first
+          break if certificate
+        end
+      end
+      if certificate
+        say_ok CGI.parse(URI.parse(certificate.download_url).query)['displayId'].first
+      else
+        say_error "Could not output certificate ID that was created" and abort
+      end
+    end
   end
 end

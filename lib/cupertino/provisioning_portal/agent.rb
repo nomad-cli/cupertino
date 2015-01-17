@@ -59,14 +59,16 @@ module Cupertino
         raise UnsuccessfulAuthenticationError
       end
 
-      def list_certificates(type = :development)
+      def list_certificates(type = :all)
         url = case type
               when :development
                 "https://developer.apple.com/account/ios/certificate/certificateList.action?type=development"
               when :distribution
                 "https://developer.apple.com/account/ios/certificate/certificateList.action?type=distribution"
+              when :all
+                "https://developer.apple.com/account/ios/certificate/certificateList.action"
               else
-                raise ArgumentError, "Certificate type must be :development or :distribution"
+                raise ArgumentError, "Certificate type must be :development, :distribution, or :all"
               end
 
         get(url)
@@ -169,6 +171,7 @@ module Cupertino
           form.field_with(name: "appIdId").value = extra_id
         end
         form.submit
+        #TODO: Handle this more gracefully with a return ID of some sort.
       end
 
       def download_certificate(certificate)

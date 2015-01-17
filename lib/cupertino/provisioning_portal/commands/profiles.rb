@@ -92,7 +92,7 @@ command :'profiles:create' do |c|
 
   c.option '--type [TYPE]', [:development, :appstore, :adhoc], "Type of profile (development, appstore, or adhoc); defaults to development"
   c.option '--certificateid [CERTIFICATEID]', "Backend Certificate ID, output from certificate:getid"
-  c.option '--download', "Downloads Certificate"
+  c.option '--download', "Downloads Provisioning Profile"
 
   c.action do |args, options|
     say_error "Missing arguments, expected [NAME] [APPID]" and abort if args.nil? or args.length != 2

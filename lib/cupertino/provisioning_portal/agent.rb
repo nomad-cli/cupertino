@@ -240,12 +240,14 @@ module Cupertino
         end
       end
 
-      def list_profiles(type = :development)
+      def list_profiles(type = :all)
         url = case type
               when :development
                 'https://developer.apple.com/account/ios/profile/profileList.action?type=limited'
               when :distribution
                 'https://developer.apple.com/account/ios/profile/profileList.action?type=production'
+              when :all
+                'https://developer.apple.com/account/ios/profile/profileList.action'
               else
                 raise ArgumentError, 'Provisioning profile type must be :development or :distribution'
               end
@@ -261,6 +263,8 @@ module Cupertino
                               '&type=limited'
                             when :distribution
                               '&type=production'
+                            when :all
+                              ''
                             end
 
         post(profile_data_url)
@@ -403,7 +407,8 @@ module Cupertino
         # form.add_field!("certificateCount", certificate_fields.count)
 
         form.submit(nil, @csrf_headers)
-        #TODO: Check response for IDs
+        (page.body.match /provisioningProfileId/ or raise UnexpectedContentError)[1]
+        return JSON.parse(page.body)['provisioningProfile'] 
       end
 
       def download_profile(profile)

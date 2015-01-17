@@ -92,6 +92,7 @@ command :'profiles:create' do |c|
 
   c.option '--type [TYPE]', [:development, :appstore, :adhoc], "Type of profile (development, appstore, or adhoc); defaults to development"
   c.option '--certificateid [CERTIFICATEID]', "Backend Certificate ID, output from certificate:getid"
+  c.option '--download', "Downloads Certificate"
 
   c.action do |args, options|
     say_error "Missing arguments, expected [NAME] [APPID]" and abort if args.nil? or args.length != 2
@@ -99,8 +100,19 @@ command :'profiles:create' do |c|
     certificate_id = (options.certificateid.downcase.to_sym if options.certificateid) || nil
     name, app_id = args
 
-    profile = agent.create_profile(name,type,app_id, certificate_id)
-    say_ok "Assuming created profile, waiting a few seconds to download."
+    output = agent.create_profile(name,type,app_id, certificate_id)
+    say_ok "Created profile #{output['name']} with ID #{output['provisioningProfileId']}"
+
+    if options.download
+      profiles = try{agent.list_profiles}.select{|profile| profile.name == output['name']}
+      profiles.each do |profile|
+        if filename = agent.download_profile(profile)
+          say_ok "Successfully downloaded: '#{filename}'"
+        else
+          say_error "Could not download profile: '#{profile.name}'"
+        end
+      end
+    end
   end
 end
 

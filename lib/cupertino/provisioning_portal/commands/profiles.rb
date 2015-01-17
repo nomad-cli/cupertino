@@ -97,7 +97,7 @@ command :'profiles:create' do |c|
   c.action do |args, options|
     say_error "Missing arguments, expected [NAME] [APPID]" and abort if args.nil? or args.length != 2
     type = (options.type.downcase.to_sym if options.type) || :development
-    certificate_id = (options.certificateid.downcase.to_sym if options.certificateid) || nil
+    certificate_id = (options.certificateid if options.certificateid) || nil
     name, app_id = args
 
     output = agent.create_profile(name,type,app_id, certificate_id)

@@ -342,49 +342,64 @@ module Cupertino
         #Certificates Selection
         form = page.form_with(action: "https://developer.apple.com/account/ios/profile/profileCreateCertificates.action") or raise UnexpectedContentError
         form.method = "POST"
-        form.action = "https://developer.apple.com/account/ios/profile/profileCreateDevices.action"
+        if type == :development or type == :adhoc
+          form.action = "https://developer.apple.com/account/ios/profile/profileCreateDevices.action"
+        else
+          form.action = "https://developer.apple.com/account/ios/profile/profileCreateName.action"
+        end
         form.add_field!("distributionType", form_type)
         form.add_field!("appIdId", app_id)
         form.add_field!("appIdName", app_id_name)
         form.add_field!("appIdPrefix", app_id_prefix)
         form.add_field!("appIdIdentifier", app_id_identifier)
-        if certificate_id
-          certificate_ids = "[" + certificate_id + "]"
-          form.add_field!("certificateCount", 1)
-          form.checkboxes_with(name: "certificates", value: certificate_id).check
-          certificate_fields = form.checkboxes_with(name: "certificates", value: certificate_id)
-        else
-          certificate_ids = "[" + form.checkboxes.map(&:value).join(",") + "]"
-          form.add_field!("certificateCount", form.checkboxes.count)
-          form.checkboxes_with(name: "certificates").each do |cb|
-            cb.check
+        if type == :development
+          if certificate_id
+            certificate_ids = "[" + certificate_id + "]"
+            form.add_field!("certificateCount", 1)
+            form.checkboxes_with(name: "certificates", value: certificate_id).first.check
+          else
+            certificate_ids = "[" + form.checkboxes.map(&:value).join(",") + "]"
+            form.add_field!("certificateCount", form.checkboxes.count)
+            form.checkboxes_with(name: "certificates").each do |cb|
+              cb.check
+            end
+            certificate_fields = form.checkboxes_with(name: "certificates")
+            form.add_field!("certificateIds", certificate_ids)
           end
-          certificate_fields = form.checkboxes_with(name: "certificates")
+        else
+          if certificate_id
+            certificate_ids = "[" + certificate_id + "]"
+            form.add_field!("certificateCount", 1)
+            form.radiobuttons_with(name: "certificateIds", value: certificate_ids).first.click
+          else
+            raise ArgumentError, "Certificate must be supplied for non-development profiles."
+          end
         end
         
-        form.add_field!("certificateIds", certificate_ids)
         form.add_field!("template", "")
         form.add_field!("formID", "#{rand(100000000)}")
         form.submit
 
-        #Devices Selection
-        form = page.form_with(action: "https://developer.apple.com/account/ios/profile/profileCreateDevices.action") or raise UnexpectedContentError
-        form.method = "POST"
-        form.action = "https://developer.apple.com/account/ios/profile/profileCreateName.action"
-        form.add_field!("distributionType", form_type)
-        form.add_field!("appIdId", app_id)
-        form.add_field!("appIdName", app_id_name)
-        form.add_field!("appIdPrefix", app_id_prefix)
-        form.add_field!("appIdIdentifier", app_id_identifier)
-        form.add_field!("returnFullObjects", "false")
-        form.checkboxes_with(name: "devices").each do |cb|
-          cb.check
+        #Devices Selection, only for dev and adhoc
+        if type == :development or type == :adhoc
+          form = page.form_with(action: "https://developer.apple.com/account/ios/profile/profileCreateDevices.action") or raise UnexpectedContentError
+          form.method = "POST"
+          form.action = "https://developer.apple.com/account/ios/profile/profileCreateName.action"
+          form.add_field!("distributionType", form_type)
+          form.add_field!("appIdId", app_id)
+          form.add_field!("appIdName", app_id_name)
+          form.add_field!("appIdPrefix", app_id_prefix)
+          form.add_field!("appIdIdentifier", app_id_identifier)
+          form.add_field!("returnFullObjects", "false")
+          form.checkboxes_with(name: "devices").each do |cb|
+            cb.check
+          end
+          device_fields = form.checkboxes_with(name: "devices")
+          # device_ids = "[" + form.checkboxes_with(name: "devices").map(&:value).join(",") + "]"
+          form.add_field!("template", "")
+          form.add_field!("formID", "#{rand(100000000)}")
+          form.submit
         end
-        device_fields = form.checkboxes_with(name: "devices")
-        # device_ids = "[" + form.checkboxes_with(name: "devices").map(&:value).join(",") + "]"
-        form.add_field!("template", "")
-        form.add_field!("formID", "#{rand(100000000)}")
-        form.submit
         
         #Name & Generate Profile
         form = page.form_with(name: "profileSubmit") or raise UnexpectedContentError
@@ -392,21 +407,20 @@ module Cupertino
         form.field_with(name: "provisioningProfileName").value = name
         form.add_field!("distributionType", form_type)
         form.add_field!("appIdId", app_id)
-        # form.add_field!("appIdName", app_id_name)
-        # form.add_field!("appIdPrefix", app_id_prefix)
-        # form.add_field!("appIdIdentifier", app_id_identifier)
         adssuv = cookies.find{|cookie| cookie.name == 'adssuv'}
         form.add_field!('adssuv-value',Mechanize::Util::uri_unescape(adssuv.value))
-        device_fields.each do |cb|
-          form.add_field!("devices", cb.value)
+        if device_fields
+          device_fields.each do |cb|
+            form.add_field!("devices", cb.value)
+          end
         end
-        # form.add_field!("deviceCount", device_fields.count)
-        certificate_fields.each do |cb|
-          form.add_field!("certificates", cb.value)
+        if certificate_fields
+          certificate_fields.each do |cb|
+            form.add_field!("certificates", cb.value)
+          end
         end
-        # form.add_field!("certificateCount", certificate_fields.count)
-
         form.submit(nil, @csrf_headers)
+        
         (page.body.match /provisioningProfileId/ or raise UnexpectedContentError)[1]
         return JSON.parse(page.body)['provisioningProfile'] 
       end

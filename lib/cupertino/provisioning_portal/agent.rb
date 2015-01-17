@@ -13,7 +13,7 @@ module Cupertino
 
       def initialize
         super
-        @profile_csrf_headers = {}
+        @csrf_headers = {}
         self.user_agent_alias = 'Mac Safari'
 
         self.log ||= Logger.new(STDOUT)
@@ -264,12 +264,7 @@ module Cupertino
                             end
 
         post(profile_data_url)
-        @profile_csrf_headers = {
-          'csrf' => page.response['csrf'],
-          'csrf_ts' => page.response['csrf_ts']
-        }
-
-        @profile_csrf_headers = {
+        @csrf_headers = {
           'csrf' => page.response['csrf'],
           'csrf_ts' => page.response['csrf_ts']
         }
@@ -294,6 +289,18 @@ module Cupertino
       end
 
       def create_profile(name, type, app_id, certificate_id)
+        #TODO Simplify this process to bare minimum
+
+        get("https://developer.apple.com/account/ios/profile/profileList.action")
+        regex = /profileDataURL = "([^"]*)"/
+        profile_data_url = (page.body.match regex or raise UnexpectedContentError)[1]
+
+        post(profile_data_url)
+        @csrf_headers = {
+          'csrf' => page.response['csrf'],
+          'csrf_ts' => page.response['csrf_ts']
+        }
+
         get("https://developer.apple.com/account/ios/profile/profileCreate.action")
         form_type = case type
                     when :development
@@ -374,7 +381,7 @@ module Cupertino
         form.add_field!("template", "")
         form.add_field!("formID", "#{rand(100000000)}")
         form.submit
-
+        
         #Name & Generate Profile
         form = page.form_with(name: "profileSubmit") or raise UnexpectedContentError
         form.method = "POST"
@@ -385,7 +392,7 @@ module Cupertino
         # form.add_field!("appIdPrefix", app_id_prefix)
         # form.add_field!("appIdIdentifier", app_id_identifier)
         adssuv = cookies.find{|cookie| cookie.name == 'adssuv'}
-        form.add_field!('adssuv-value', Mechanize::Util::uri_unescape(adssuv.value))
+        form.add_field!('adssuv-value',Mechanize::Util::uri_unescape(adssuv.value))
         device_fields.each do |cb|
           form.add_field!("devices", cb.value)
         end
@@ -394,10 +401,9 @@ module Cupertino
           form.add_field!("certificates", cb.value)
         end
         # form.add_field!("certificateCount", certificate_fields.count)
-        
-        form.submit
-        byebug
 
+        form.submit(nil, @csrf_headers)
+        #TODO: Check response for IDs
       end
 
       def download_profile(profile)
@@ -445,7 +451,7 @@ module Cupertino
         form.add_field!('adssuv-value', Mechanize::Util::uri_unescape(adssuv.value))
 
         form.method = 'POST'
-        form.submit(nil, @profile_csrf_headers)
+        form.submit(nil, @csrf_headers)
       end
 
       def list_devices_for_profile(profile)
@@ -473,8 +479,18 @@ module Cupertino
       end
 
       def add_app_id(app_id)
-        get("https://developer.apple.com/account/ios/identifiers/bundle/bundleCreate.action")
+        get('https://developer.apple.com/account/ios/identifiers/bundle/bundleList.action')
 
+        regex = /bundleDataURL = "([^"]*)"/
+        bundle_data_url = (page.body.match regex or raise UnexpectedContentError)[1]
+
+        post(bundle_data_url)
+        @csrf_headers = {
+          'csrf' => page.response['csrf'],
+          'csrf_ts' => page.response['csrf_ts']
+        }
+
+        get("https://developer.apple.com/account/ios/identifiers/bundle/bundleCreate.action")
         form = page.form_with(name: 'bundleSave') or raise UnexpectedContentError
         form.method = 'POST'
         form.action = "https://developer.apple.com/account/ios/identifiers/bundle/bundleConfirm.action"
@@ -491,7 +507,6 @@ module Cupertino
 
         form = page.form_with(name: 'bundleSubmit') or raise UnexpectedContentError
         form.method = 'POST'
-        form.action = "https://developer.apple.com/account/ios/identifiers/bundle/bundleComplete.action"
         adssuv = cookies.find{|cookie| cookie.name == 'adssuv'}
         form.add_field!("adssuv-value", Mechanize::Util::uri_unescape(adssuv.value))
         form.add_field!("push", "on")
@@ -503,8 +518,7 @@ module Cupertino
         form.add_field!("appIdentifierString", app_id.identifier)
         form.add_field!("formID", "#{rand(100000000)}")
         form.add_field!("clientToken", "undefined")
-        
-        form.submit
+        form.submit(nil, @csrf_headers) #TODO: Check Repsonse Data for IDs
       end
 
       def list_app_ids

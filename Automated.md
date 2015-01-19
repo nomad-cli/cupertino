@@ -7,7 +7,9 @@ Automate the entire process of submitting a new app to development devices. Or a
 1. ADC Account & Login Credentials
 1. ADC Team Name (only if on multiple teams)
 1. App Name
+
 ## Process
+
 ### Development
 1. Generate Keypair
 `$ ssh-keygen -t rsa -b 2048 -f keypair -N passphrase`

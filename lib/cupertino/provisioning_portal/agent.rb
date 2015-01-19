@@ -540,7 +540,12 @@ module Cupertino
         form.add_field!("appIdentifierString", app_id.identifier)
         form.add_field!("formID", "#{rand(100000000)}")
         form.add_field!("clientToken", "undefined")
-        form.submit(nil, @csrf_headers) #TODO: Check Repsonse Data for IDs
+        form.submit(nil, @csrf_headers)
+        if page.body.match /is already in use on your team./
+          raise UnexpectedContentError.new 'This App ID is already in use'
+        end
+        (page.body.match /appIdId/ or raise UnexpectedContentError)[1]
+        return JSON.parse(page.body)['appId']
       end
 
       def list_app_ids

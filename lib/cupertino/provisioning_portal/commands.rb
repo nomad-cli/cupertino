@@ -1,12 +1,14 @@
 include Cupertino::ProvisioningPortal
+
+require 'cupertino/provisioning_portal/helpers'
 include Cupertino::ProvisioningPortal::Helpers
 
 global_option('-u', '--username USER', 'Username') { |arg| agent.username = arg unless arg.nil? }
 global_option('-p', '--password PASSWORD', 'Password') { |arg| agent.password = arg unless arg.nil? }
-global_option('-tm', '--team TEAM', 'Team') { |arg| agent.team = arg unless arg.nil? }
-
-global_option('-i','--info', 'Set log level to INFO and higher') { agent.log_level(Logger::INFO) }
-global_option('-d','--debug','Set log level to DEBUG and higher (that is, all log messages)') { agent.log_level(Logger::DEBUG) }
+global_option('--team TEAM', 'Team') { |arg| agent.team = arg if arg }
+global_option('--info', 'Set log level to INFO') { agent.log.level = Logger::INFO }
+global_option('--debug', 'Set log level to DEBUG') { agent.log.level = Logger::DEBUG }
+global_option('--format FORMAT', [:table, :csv], "Set output format (default: table)")
 
 require 'cupertino/provisioning_portal/commands/certificates'
 require 'cupertino/provisioning_portal/commands/devices'

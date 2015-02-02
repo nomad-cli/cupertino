@@ -2,97 +2,60 @@ require 'mechanize'
 require 'security'
 require 'uri'
 require 'json'
+require 'date'
+require 'time'
 require 'logger'
 
 module Cupertino
   module ProvisioningPortal
     class Agent < ::Mechanize
-      attr_accessor :username, :password, :team
+      attr_accessor :username, :password, :team, :team_id
 
       def initialize
         super
+        @profile_csrf_headers = {}
         self.user_agent_alias = 'Mac Safari'
 
-        get_proxy_from_env
+        self.log ||= Logger.new(STDOUT)
+        self.log.level = Logger::ERROR
+
+        if ENV['HTTP_PROXY']
+          uri = URI.parse(ENV['HTTP_PROXY'])
+          user = ENV['HTTP_PROXY_USER'] if ENV['HTTP_PROXY_USER']
+          password = ENV['HTTP_PROXY_PASSWORD'] if ENV['HTTP_PROXY_PASSWORD']
+
+          set_proxy(uri.host, uri.port, user || uri.user, password || uri.password)
+        end
 
         pw = Security::InternetPassword.find(:server => Cupertino::ProvisioningPortal::HOST)
         @username, @password = pw.attributes['acct'], pw.password if pw
       end
 
-      def use_proxy(arg)
-        puts "Using proxy #{arg}"
-        puts '-----------'
-        uri = URI.parse(normalize_uri(arg))
-        if uri and uri.user.nil? and uri.password.nil? then
-          # Probably we have http_proxy_* variables?
-          user = (ENV['http_proxy_user'] || ENV['HTTP_PROXY_USER'])
-          pass = (ENV['http_proxy_pass'] || ENV['HTTP_PROXY_PASS'])
-          uri.user = user
-          uri.password = pass
-        end
-        set_proxy(uri.host, uri.port, user, pass)
-        uri
+      def username=(value)
+        @username = value
+
+        pw = Security::InternetPassword.find(:a => self.username, :server => Cupertino::ProvisioningPortal::HOST)
+        @password = pw.password if pw
       end
 
-      ##
-      # Returns an HTTP proxy URI if one is set in the environment variables.
-      def get_proxy_from_env
-        env_proxy = ENV['http_proxy'] || ENV['HTTP_PROXY']
-        return nil if env_proxy.nil? or env_proxy.empty?
-
-        use_proxy(env_proxy)
-      end
-
-      ##
-      # Normalize the URI by adding "http://" if it is missing.
-      def normalize_uri(uri)
-        (uri =~ /^(https?|ftp|file):/) ? uri : "http://#{uri}"
-      end
-
-      def log_level(level)
-        log = Logger.new(STDOUT)
-        log.level = level
-        @log = log
-      end
-
-      def post(uri, query = {}, headers = {})
+      def get(uri, parameters = [], referer = nil, headers = {})
+      	#say_ok  "get"
         uri = ::File.join("https://#{Cupertino::ProvisioningPortal::HOST}", uri) unless /^https?/ === uri
+      	#say_ok  uri
 
-#TODO could rescue Net::HTTP::Persistent::Error here, and if there's a proxy, suggest that the proxy is not available
         3.times do
-          super(uri, query, headers)
-
-          return page unless page.respond_to?(:title)
-
-          case page.title
-            when /Sign in with your Apple ID/
-              login! and redo
-            when /Select Team/
-              select_team! and redo
-            else
-              return page
-          end
-        end
-
-        raise UnsuccessfulAuthenticationError
-      end
-
-      def get(uri, parameters = [], referer = nil, headers = {}) #TODO make a post() version of this
-        uri = ::File.join("https://#{Cupertino::ProvisioningPortal::HOST}", uri) unless /^https?/ === uri
-
-#TODO could rescue Net::HTTP::Persistent::Error here, and if there's a proxy, suggest that the proxy is not available
-        3.times do
+      	#say_ok  "get 3.times"
           super(uri, parameters, referer, headers)
 
           return page unless page.respond_to?(:title)
 
           case page.title
-            when /Sign in with your Apple ID/
-              login! and redo
-            when /Select Team/
-              select_team! and redo
-            else
-              return page
+          when /Sign in with your Apple ID/
+            login!
+          when /Select Team/
+            select_team!
+          else
+            return page
           end
         end
 
@@ -101,12 +64,12 @@ module Cupertino
 
       def list_certificates(type = :development)
         url = case type
-                when :development
-                  "https://developer.apple.com/account/ios/certificate/certificateList.action?type=development"
-                when :distribution
-                  "https://developer.apple.com/account/ios/certificate/certificateList.action?type=distribution"
-                else
-                  raise ArgumentError, "Certificate type must be :development or :distribution"
+              when :development
+                "https://developer.apple.com/account/ios/certificate/certificateList.action?type=development"
+              when :distribution
+                "https://developer.apple.com/account/ios/certificate/certificateList.action?type=distribution"
+              else
+                raise ArgumentError, "Certificate type must be :development or :distribution"
               end
 
         get(url)
@@ -132,7 +95,7 @@ module Cupertino
           certificate.name = row['name']
           certificate.type = type
           certificate.download_url = "https://developer.apple.com/account/ios/certificate/certificateContentDownload.action?displayId=#{row['certificateId']}&type=#{row['certificateTypeDisplayId']}"
-          certificate.expiration_date = row['expirationDateString']
+          certificate.expiration = (Date.parse(row['expirationDateString']) rescue nil)
           certificate.status = row['statusString']
           certificates << certificate
         end
@@ -141,7 +104,8 @@ module Cupertino
       end
 
       def download_certificate(certificate)
-        list_certificates(certificate.type)
+       	#say_ok  "download_certificate"
+       list_certificates(certificate.type)
 
         self.pluggable_parser.default = Mechanize::Download
         download = post(certificate.download_url)
@@ -150,7 +114,8 @@ module Cupertino
       end
 
       def list_devices
-        get('https://developer.apple.com/account/ios/device/deviceList.action')
+        #say_ok  "list_devices"
+       get('https://developer.apple.com/account/ios/device/deviceList.action')
 
         regex = /deviceDataURL = "([^"]*)"/
         device_data_url = (page.body.match regex or raise UnexpectedContentError)[1]
@@ -164,7 +129,9 @@ module Cupertino
         parsed_device_data['devices'].each do |row|
           device = Device.new
           device.name = row['name']
-          device.udid = row['deviceNumber'] # Apple doesn't provide the UDID on this page anymore
+          device.enabled = (row['status'] == 'c' ? 'Y' : 'N')
+          device.device_id = row['deviceId']
+          device.udid = row['deviceNumber']
           devices << device
         end
 
@@ -172,6 +139,7 @@ module Cupertino
       end
 
       def add_devices(*devices)
+        #say_ok  "add_devices"
         return if devices.empty?
 
         get('https://developer.apple.com/account/ios/device/deviceCreate.action')
@@ -208,18 +176,18 @@ module Cupertino
       end
 
       def list_profiles(type = :development)
-        url = 'https://developer.apple.com/account/ios/profile/profileList.action'
-        filter = case type
+        #say_ok  "list_profiles"
+        url = case type
               when :development
-                'limited'
+                'https://developer.apple.com/account/ios/profile/profileList.action?type=limited'
               when :distribution
-                'production'
+                'https://developer.apple.com/account/ios/profile/profileList.action?type=production'
               else
                 raise ArgumentError, 'Provisioning profile type must be :development or :distribution'
               end
 
         self.pluggable_parser.default = Mechanize::File
-        post(url, "type" => filter)
+        get(url)
 
         regex = /profileDataURL = "([^"]*)"/
         profile_data_url = (page.body.match regex or raise UnexpectedContentError)[1]
@@ -232,6 +200,15 @@ module Cupertino
                             end
 
         post(profile_data_url)
+        @profile_csrf_headers = {
+          'csrf' => page.response['csrf'],
+          'csrf_ts' => page.response['csrf_ts']
+        }
+
+        @profile_csrf_headers = {
+          'csrf' => page.response['csrf'],
+          'csrf_ts' => page.response['csrf_ts']
+        }
 
         profile_data = page.content
         parsed_profile_data = JSON.parse(profile_data)
@@ -241,50 +218,43 @@ module Cupertino
           profile = ProvisioningProfile.new
           profile.name = row['name']
           profile.type = type
-          profile.app_id = row['appId']['appIdId']
-          profile.id = row['provisioningProfileId']
           profile.status = row['status']
-          profile.uuid = row['UUID']
+          profile.expiration = (Time.parse(row['dateExpire']) rescue nil)
           profile.download_url = "https://developer.apple.com/account/ios/profile/profileContentDownload.action?displayId=#{row['provisioningProfileId']}"
-          profile.edit_url = "https://developer.apple.com/account/ios/profile/profileEdit.action" #"?provisioningProfileId=#{row['provisioningProfileId']}"
+          profile.edit_url = "https://developer.apple.com/account/ios/profile/profileEdit.action?provisioningProfileId=#{row['provisioningProfileId']}"
+          profile.identifier = row['UUID']
           profiles << profile
         end
+
         profiles
       end
 
       def download_profile(profile)
-        list_profiles(profile.type)
-
+        #say_ok  "download_profile"
         self.pluggable_parser.default = Mechanize::Download
-        download = post(profile.download_url) #XXX double-check this against firefox
-		system ("if [ -f ~/" + download.filename + " ];then rm ~/" + download.filename + ";fi")
+        download = get(profile.download_url)
+ 		system ("if [ -f ~/" + download.filename + " ];then rm ~/" + download.filename + ";fi")
 		#print "The FILE is " + download.filename + "\n"
         download.save
         download.filename
       end
 
       def manage_devices_for_profile(profile)
+        #say_ok  "manage_devices_for_profile"
         raise ArgumentError unless block_given?
-        filter = case profile.type
-                   when :development
-                     'limited'
-                   when :distribution
-                     'production'
-                   else
-                     raise ArgumentError, 'Provisioning profile type must be :development or :distribution'
-                 end
 
-        #list_profiles(profile.type) # do we need this?
-        post(profile.edit_url, {'type'=> filter,
-                               'provisioningProfileId'=> profile.id}) #are cookies also getting sent?
+        devices = list_devices
+
+        begin
+          get(profile.edit_url)
+        rescue Mechanize::ResponseCodeError
+          say_error "1 Cannot manage devices for #{profile}" and abort
+        end
 
         on, off = [], []
         page.search('dd.selectDevices div.rows div').each do |row|
           checkbox = row.search('input[type="checkbox"]').first
-
-          device = Device.new
-          device.name = row.search('span.title').text rescue nil
-          device.udid = checkbox['value'] rescue nil
+          device = devices.detect{|d| d.device_id == checkbox['value']}
 
           if checkbox['checked']
             on << device
@@ -297,23 +267,85 @@ module Cupertino
 
         form = page.form_with(:name => 'profileEdit') or raise UnexpectedContentError
         form.checkboxes_with(:name => 'deviceIds').each do |checkbox|
-          checkbox.check
-          if devices.detect{|device| device.udid == checkbox['value']}
+          if devices.detect{|device| device.device_id == checkbox['value']}
             checkbox.check
           else
             checkbox.uncheck
           end
         end
 
-        form.method = 'POST'
-
         adssuv = cookies.find{|cookie| cookie.name == 'adssuv'}
         form.add_field!('adssuv-value', Mechanize::Util::uri_unescape(adssuv.value))
-        form.add_field!('type', filter)
+
+        form.method = 'POST'
+        form.submit(nil, @profile_csrf_headers)
+      end
+
+      def list_devices_for_profile(profile)
+        #say_ok  "list_devices_for_profile"
+        devices = list_devices
+
+        begin
+          get(profile.edit_url)
+        rescue Mechanize::ResponseCodeError
+          say_error "2 Cannot manage devices for #{profile}" and abort
+        end
+
+        on, off = [], []
+        page.search('dd.selectDevices div.rows div').each do |row|
+          checkbox = row.search('input[type="checkbox"]').first
+          device = devices.detect{|d| d.device_id == checkbox['value']}
+
+          if checkbox['checked']
+            on << device
+          else
+            off << device
+          end
+        end
+
+        { :on => on, :off => off }
+      end
+
+      def add_app_id(app_id)
+        #say_ok  "add_app_id"
+        get("https://developer.apple.com/account/ios/identifiers/bundle/bundleCreate.action")
+
+        form = page.form_with(:name => 'bundleSave') or raise UnexpectedContentError
+        form.method = 'POST'
+        form.action = "https://developer.apple.com/account/ios/identifiers/bundle/bundleConfirm.action"
+        form.field_with(:name => "appIdName").value = app_id.description
+        form.field_with(:name => "explicitIdentifier").value = app_id.identifier
+        form.checkbox_with(:name => "push").check()
+        form.add_field!("appIdentifierString", app_id.identifier)
+        form.add_field!("formID", "#{rand(10000000)}")
+        form.add_field!("clientToken", "undefined")
         form.submit
+
+        if form = page.form_with(:name => 'bundleSubmit')
+          form.method = 'POST'
+
+          adssuv = cookies.find{|cookie| cookie.name == 'adssuv'}
+          form.add_field!("adssuv-value", Mechanize::Util::uri_unescape(adssuv.value))
+
+          form.add_field!("inAppPurchase", "on")
+          form.add_field!("gameCenter", "on")
+          form.add_field!("push", "on")
+
+          form.add_field!("explicitIdentifier", app_id.identifier)
+          form.add_field!("appIdentifierString", app_id.identifier)
+          form.add_field!("appIdName", app_id.description)
+          form.add_field!("type", "explicit")
+
+          form.submit
+        elsif form = page.form_with(:name => 'bundleSave')
+          form.submit
+        else
+          raise UnexpectedContentError
+        end
       end
 
       def list_app_ids
+        #say_ok  "list_app_ids"
         get('https://developer.apple.com/account/ios/identifiers/bundle/bundleList.action')
 
         regex = /bundleDataURL = "([^"]*)"/
@@ -328,6 +360,7 @@ module Cupertino
           app_id = AppID.new
           app_id.bundle_seed_id = [row['prefix'], row['identifier']].join(".")
           app_id.description = row['name']
+          app_id.identifier = row['identifier']
 
           app_id.development_properties, app_id.distribution_properties = [], []
           row['features'].each do |feature, value|
@@ -351,16 +384,19 @@ module Cupertino
       private
 
       def login!
-        if form = page.form_with(:name => 'appleConnectForm')
-          form.theAccountName = self.username
-          form.theAccountPW = self.password
+        #say_ok  "login"
+        if form = page.forms.first
+          form.fields_with(type: 'text').first.value = self.username
+          form.fields_with(type: 'password').first.value = self.password
+
           form.submit
         end
       end
 
       def select_team!
+        #say_ok  "select_team"
         if form = page.form_with(:name => 'saveTeamSelection')
-          team_option = form.radiobutton_with(:value => self.team)
+          team_option = form.radiobutton_with(:value => self.team_id)
           team_option.check
 
           button = form.button_with(:name => 'action:saveTeamSelection!save')

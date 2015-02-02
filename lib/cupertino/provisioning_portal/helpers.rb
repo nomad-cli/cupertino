@@ -23,15 +23,23 @@ module Cupertino
               @password ||= pw "Password:"
             end
 
-            def team
-              teams_by_name = {}
-              page.form_with(:name => 'saveTeamSelection').radiobuttons.each do |radio|
-                name = page.search("label[for=\"#{radio.dom_id}\"]").first.text.strip
-                teams_by_name[name] = radio.value
+            def team_id
+              unless @team_id
+                teams = []
+                page.form_with(:name => 'saveTeamSelection').radiobuttons.each do |radio|
+                  name = page.search(".label-primary[for=\"#{radio.dom_id}\"]").first.text.strip
+                  programs = page.search(".label-secondary[for=\"#{radio.dom_id}\"]").first.text.strip.split(/\,\s+/)
+                  teams << Team.new(name, programs, radio.value)
+                end
+
+                unless team = teams.detect{|t| t.name == @team || t.identifier == @team}
+                  team = choose("Select a team:", *teams)
+                end
+
+                @team_id = team.identifier
               end
 
-              name = choose "Select a team:", *teams_by_name.keys
-              @team ||= teams_by_name[name]
+              @team_id
             end
           end
         end

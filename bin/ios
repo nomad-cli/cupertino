@@ -3,6 +3,7 @@
 require 'commander/import'
 require 'terminal-table'
 require 'term/ansicolor'
+require 'csv'
 
 require 'cupertino'
 
@@ -19,3 +20,4 @@ program :help_formatter, :compact
 default_command :help
 
 require 'cupertino/provisioning_portal'
+require 'cupertino/provisioning_portal/commands'

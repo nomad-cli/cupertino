@@ -212,10 +212,10 @@ command :'profiles:manage:devices:list' do |c|
                CSV.generate do |csv|
                  csv << ["Device Name", "Device Identifier", "Active"]
                   list[:on].each do |device|
-                    t << [device.name, device.udid, "Y"]
+                    csv << [device.name, device.udid, "Y"]
                   end
                   list[:off].each do |device|
-                    t << [device.name, device.udid, "N"]
+                    csv << [device.name, device.udid, "N"]
                   end
                end
              else

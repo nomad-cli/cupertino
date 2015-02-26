@@ -211,12 +211,12 @@ command :'profiles:manage:devices:list' do |c|
              when :csv
                CSV.generate do |csv|
                  csv << ["Device Name", "Device Identifier", "Active"]
-
-                 list.values.each do |devices|
-                   devices.each do |device|
-                     csv << [device.name, device.udid, "Y"]
-                   end
-                 end
+                  list[:on].each do |device|
+                    t << [device.name, device.udid, "Y"]
+                  end
+                  list[:off].each do |device|
+                    t << [device.name, device.udid, "N"]
+                  end
                end
              else
                 title = "Listing devices for provisioning profile #{profile.name}"

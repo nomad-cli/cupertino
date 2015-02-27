@@ -60,8 +60,8 @@ command :'app_ids:add' do |c|
       app_id = AppID.new
       app_id.description = components.first
       app_id.identifier = components.last
-      agent.add_app_id(app_id)
-      say_ok "Successfully added App ID #{app_id.identifier}"
+      output = agent.add_app_id(app_id)
+      say_ok "Successfully added App ID #{output['identifier']}"
     end
   end
 end

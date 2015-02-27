@@ -25,9 +25,18 @@ $ gem install cupertino
 
 ```
 $ ios login
+$ ios [command] -u [username] -p [password]
 ```
 
 _Credentials are saved in the Keychain. You will not be prompted for your username or password by commands while you are logged in. (Mac only)_
+
+### Team Selection
+
+```
+$ ios [command] --team [TEAM]
+```
+
+This is also an interactive choice
 
 ### Devices
 
@@ -57,6 +66,23 @@ $ ios profiles:list
 +----------------------------------+--------------+---------+
 | iOS Team Provisioning Profile: * | ABCDEFG123.* | Valid   |
 +----------------------------------+--------------+---------+
+```
+
+```
+$ ios profiles:create "Profile 1" "ABCDEFG123.com.company.app"
+Development profile created with all certificates and all devices
+
+$ ios profiles:create --download "Profile 1" "ABCDEFG123.com.company.app"
+Downloaded Profile_1.mobileprovision
+
+$ ios profiles:create --certificateid "AB123XYZG" "Profile 1" "ABCDEFG123.com.company.app"
+Development profile created with 1 certificate and all devices
+
+$ ios profiles:create --type appstore --certificateid "AB123XYZG" "Profile 1" "ABCDEFG123.com.company.app"
+App Store profile created called Profile 1
+
+$ ios profiles:create --type adhoc --certificateid "AB123XYZG" "Profile 1" "ABCDEFG123.com.company.app"
+Ad Hoc profile created with 1 certificate and all devices
 ```
 
 ---
@@ -139,6 +165,21 @@ $ ios certificates:download --type distribution
 $ ios certificates:download NAME
 ```
 
+```
+$ ios certificates:create request.csr
+$ ios certificates:create --type devpush request.csr 123ABCDEFG.com.mattt.bundle
+$ ios certificates:create --type production request.csr
+$ ios certificates:create --type prodpush request.csr 123ABCDEFG.com.mattt.bundle
+$ ios certificates:create --type prodpush --download --internalid request.csr
+$ ios certificates:create --download request.csr
+$ ios certificates:create --download --internalid --type TYPE CSR (APPID)
+```
+App ID is required for Push Certificates.
+
+The download flag retrieves the certificate file to the current directory
+
+The internalid flag quiets all output but returns Apple's internal id for the created certificate to the STDOUT. Can be used in combination with the download flag.
+
 ## CSV Output
 
 The following commands will format their output as [comma-separated values](http://en.wikipedia.org/wiki/Comma-separated_values) when the `--format csv` argument is passed:
@@ -155,6 +196,7 @@ The following commands will format their output as [comma-separated values](http
 - `devices:add`
 - `devices:list`
 - `profiles:list`
+- `profiles:create`
 - `profiles:manage:devices`
 - `profiles:manage:devices:add`
 - `profiles:manage:devices:remove`
@@ -163,19 +205,13 @@ The following commands will format their output as [comma-separated values](http
 - `profiles:devices:list`
 - `certificates:list`
 - `certificates:download`
+- `certificates:create`
+- `app_ids:add`
 - `app_ids:list`
 
 ## Proxies
 
 Cupertino will access the provisioning portal through a proxy if the `HTTP_PROXY` environment variable is set, with optional credentials `HTTP_PROXY_USER` and `HTTP_PROXY_PASSWORD`.
-
-## Contact
-
-Mattt Thompson
-
-- http://github.com/mattt
-- http://twitter.com/mattt
-- m@mattt.me
 
 ## License
 

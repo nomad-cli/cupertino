@@ -13,7 +13,7 @@ module Cupertino
 
       def initialize
         super
-        @profile_csrf_headers = {}
+        @csrf_headers = {}
         self.user_agent_alias = 'Mac Safari'
 
         self.log ||= Logger.new(STDOUT)
@@ -59,14 +59,16 @@ module Cupertino
         raise UnsuccessfulAuthenticationError
       end
 
-      def list_certificates(type = :development)
+      def list_certificates(type = :all)
         url = case type
               when :development
                 "https://developer.apple.com/account/ios/certificate/certificateList.action?type=development"
               when :distribution
                 "https://developer.apple.com/account/ios/certificate/certificateList.action?type=distribution"
+              when :all
+                "https://developer.apple.com/account/ios/certificate/certificateList.action"
               else
-                raise ArgumentError, "Certificate type must be :development or :distribution"
+                raise ArgumentError, "Certificate type must be :development, :distribution, or :all"
               end
 
         get(url)
@@ -98,6 +100,78 @@ module Cupertino
         end
 
         certificates
+      end
+
+      def create_certificate(type, filename, extra_id)
+        get("https://developer.apple.com/account/ios/certificate/certificateCreate.action")
+        form_type = case type
+                    when :development
+                      "5QPB9NHCEI"
+                    when :devpush
+                      "BKLRAVXMGM"
+                    when :production
+                      "R58UK2EWSO"
+                    when :prodpush
+                      "3BQKVH9I2X"
+                    # when :passtype
+                    #   "Y3B2F3TYSI" #pass type ID needed
+                    # when :webpush
+                    #   "3T2ZP62QW8" #website push ID needed
+                    when :voip
+                      "E5D663CMZW"
+                    # when :applepay
+                    #   "4APLUP237T" #merchant ID needed
+                    else
+                      raise ArgumentError, "Certificate type must be :development, :devpush, :production, :prodpush, :voip"
+                    end
+
+        #Make sure file is valid before hitting Apple's servers
+        file = ::File.open(filename)
+
+        #Select Type Page
+        form = page.form_with(name: 'certificateSave') or raise UnexpectedContentError
+        form.method = 'POST'
+        if(type == :devpush or type == :prodpush or type == :voip)
+          form.action = "https://developer.apple.com/account/ios/certificate/certificateCreatePush.action" 
+        else
+          form.action = "https://developer.apple.com/account/ios/certificate/certificateRequest.action"
+        end
+        form.radiobutton_with(value: form_type).check()
+        form.add_field!("formID", "#{rand(100000000)}")
+        form.add_field!("clientToken", "undefined")
+        form.submit
+
+        #Select Type Page #2 (for Certificate Types which require AppID)
+        if(type == :devpush or type == :prodpush or type == :voip)
+          form = page.form_with(action: "https://developer.apple.com/account/ios/certificate/certificateCreatePush.action") or raise UnexpectedContentError
+          form.method = "POST"
+          form.action = "https://developer.apple.com/account/ios/certificate/certificateRequest.action"
+          form.field_with(name: "appIdId").option_with(text: extra_id).click
+          extra_id = form.field_with(name: "appIdId").option_with(text: extra_id).value
+          form.add_field!("types", form_type)
+          form.add_field!("formID", "#{rand(100000000)}")
+          form.submit
+        end
+
+        #Request Page
+        form = page.form_with(name: 'certificateRequest') or raise UnexpectedContentError
+        form.method = 'POST'
+        form.action = "https://developer.apple.com/account/ios/certificate/certificateGenerate.action"
+        form.add_field!("types", form_type)
+        form.add_field!("formID", "#{rand(100000000)}")
+        form.submit
+
+        #Generate Page
+        form = page.form_with(name: 'certificateGenerate') or raise UnexpectedContentError
+        form.method = 'POST'
+        form.action = "https://developer.apple.com/account/ios/certificate/certificateSubmit.action"
+        upload = form.file_uploads.first
+        upload.file_name = file.path
+        if(type == :devpush or type == :prodpush or type == :voip)
+          form.field_with(name: "appIdId").value = extra_id
+        end
+        form.submit
+        #TODO: Handle this more gracefully with a return ID of some sort.
       end
 
       def download_certificate(certificate)
@@ -169,12 +243,14 @@ module Cupertino
         end
       end
 
-      def list_profiles(type = :development)
+      def list_profiles(type = :all)
         url = case type
               when :development
                 'https://developer.apple.com/account/ios/profile/profileList.action?type=limited'
               when :distribution
                 'https://developer.apple.com/account/ios/profile/profileList.action?type=production'
+              when :all
+                'https://developer.apple.com/account/ios/profile/profileList.action'
               else
                 raise ArgumentError, 'Provisioning profile type must be :development or :distribution'
               end
@@ -190,15 +266,12 @@ module Cupertino
                               '&type=limited'
                             when :distribution
                               '&type=production'
+                            when :all
+                              ''
                             end
 
         post(profile_data_url)
-        @profile_csrf_headers = {
-          'csrf' => page.response['csrf'],
-          'csrf_ts' => page.response['csrf_ts']
-        }
-
-        @profile_csrf_headers = {
+        @csrf_headers = {
           'csrf' => page.response['csrf'],
           'csrf_ts' => page.response['csrf_ts']
         }
@@ -220,6 +293,139 @@ module Cupertino
         end
 
         profiles
+      end
+
+      def create_profile(name, type, app_id, certificate_id)
+        #TODO Simplify this process to bare minimum
+
+        get("https://developer.apple.com/account/ios/profile/profileList.action")
+        regex = /profileDataURL = "([^"]*)"/
+        profile_data_url = (page.body.match regex or raise UnexpectedContentError)[1]
+
+        post(profile_data_url)
+        @csrf_headers = {
+          'csrf' => page.response['csrf'],
+          'csrf_ts' => page.response['csrf_ts']
+        }
+
+        get("https://developer.apple.com/account/ios/profile/profileCreate.action")
+        form_type = case type
+                    when :development
+                      "limited"
+                    when :appstore
+                      "store"
+                    when :adhoc
+                      "adhoc"
+                    else
+                      raise ArgumentError, "Certificate type must be :development, :appstore, :adhoc"
+                    end
+
+        #Profile Type Selection
+        form = page.form_with(action: 'https://developer.apple.com/account/ios/profile/profileCreate.action') or raise UnexpectedContentError
+        form.method = 'POST'
+        form.action = "https://developer.apple.com/account/ios/profile/profileCreateApp.action" 
+        form.radiobutton_with(value: form_type).check()
+        form.add_field!("formID", "#{rand(100000000)}")
+        form.submit
+
+        #App ID Selection
+        form = page.form_with(action: "https://developer.apple.com/account/ios/profile/profileCreateApp.action") or raise UnexpectedContentError
+        form.method = "POST"
+        form.action = "https://developer.apple.com/account/ios/profile/profileCreateCertificates.action"
+        form.add_field!("distributionType", form_type)
+        form.add_field!("formID", "#{rand(100000000)}")
+        form.field_with(name: "appIdId").option_with(text: /#{Regexp.escape(app_id)}/).click
+        app_id_field = form.field_with(name: "appIdId").option_with(text: /#{Regexp.escape(app_id)}/)
+        app_id = app_id_field.value
+        app_id_name = app_id_field.text[ /.*(?= \()/ ]
+        app_id_prefix = app_id_field.text[ /[A-Z0-9]*(?=\.)/ ]
+        app_id_identifier = app_id_field.text[ /\.[^)]+/ ][1..-1]
+        form.submit
+
+        #Certificates Selection
+        form = page.form_with(action: "https://developer.apple.com/account/ios/profile/profileCreateCertificates.action") or raise UnexpectedContentError
+        form.method = "POST"
+        if type == :development or type == :adhoc
+          form.action = "https://developer.apple.com/account/ios/profile/profileCreateDevices.action"
+        else
+          form.action = "https://developer.apple.com/account/ios/profile/profileCreateName.action"
+        end
+        form.add_field!("distributionType", form_type)
+        form.add_field!("appIdId", app_id)
+        form.add_field!("appIdName", app_id_name)
+        form.add_field!("appIdPrefix", app_id_prefix)
+        form.add_field!("appIdIdentifier", app_id_identifier)
+        if type == :development
+          if certificate_id
+            certificate_ids = "[" + certificate_id + "]"
+            form.add_field!("certificateCount", 1)
+            form.checkboxes_with(name: "certificates", value: certificate_id).first.check
+          else
+            certificate_ids = "[" + form.checkboxes.map(&:value).join(",") + "]"
+            form.add_field!("certificateCount", form.checkboxes.count)
+            form.checkboxes_with(name: "certificates").each do |cb|
+              cb.check
+            end
+            certificate_fields = form.checkboxes_with(name: "certificates")
+            form.add_field!("certificateIds", certificate_ids)
+          end
+        else
+          if certificate_id
+            certificate_ids = "[" + certificate_id + "]"
+            form.add_field!("certificateCount", 1)
+            form.radiobuttons_with(name: "certificateIds", value: certificate_ids).first.click
+          else
+            raise ArgumentError, "Certificate must be supplied for non-development profiles."
+          end
+        end
+        
+        form.add_field!("template", "")
+        form.add_field!("formID", "#{rand(100000000)}")
+        form.submit
+
+        #Devices Selection, only for dev and adhoc
+        if type == :development or type == :adhoc
+          form = page.form_with(action: "https://developer.apple.com/account/ios/profile/profileCreateDevices.action") or raise UnexpectedContentError
+          form.method = "POST"
+          form.action = "https://developer.apple.com/account/ios/profile/profileCreateName.action"
+          form.add_field!("distributionType", form_type)
+          form.add_field!("appIdId", app_id)
+          form.add_field!("appIdName", app_id_name)
+          form.add_field!("appIdPrefix", app_id_prefix)
+          form.add_field!("appIdIdentifier", app_id_identifier)
+          form.add_field!("returnFullObjects", "false")
+          form.checkboxes_with(name: "devices").each do |cb|
+            cb.check
+          end
+          device_fields = form.checkboxes_with(name: "devices")
+          # device_ids = "[" + form.checkboxes_with(name: "devices").map(&:value).join(",") + "]"
+          form.add_field!("template", "")
+          form.add_field!("formID", "#{rand(100000000)}")
+          form.submit
+        end
+        
+        #Name & Generate Profile
+        form = page.form_with(name: "profileSubmit") or raise UnexpectedContentError
+        form.method = "POST"
+        form.field_with(name: "provisioningProfileName").value = name
+        form.add_field!("distributionType", form_type)
+        form.add_field!("appIdId", app_id)
+        adssuv = cookies.find{|cookie| cookie.name == 'adssuv'}
+        form.add_field!('adssuv-value',Mechanize::Util::uri_unescape(adssuv.value))
+        if device_fields
+          device_fields.each do |cb|
+            form.add_field!("devices", cb.value)
+          end
+        end
+        if certificate_fields
+          certificate_fields.each do |cb|
+            form.add_field!("certificates", cb.value)
+          end
+        end
+        form.submit(nil, @csrf_headers)
+        
+        (page.body.match /provisioningProfileId/ or raise UnexpectedContentError)[1]
+        return JSON.parse(page.body)['provisioningProfile'] 
       end
 
       def download_profile(profile)
@@ -267,7 +473,7 @@ module Cupertino
         form.add_field!('adssuv-value', Mechanize::Util::uri_unescape(adssuv.value))
 
         form.method = 'POST'
-        form.submit(nil, @profile_csrf_headers)
+        form.submit(nil, @csrf_headers)
       end
 
       def list_devices_for_profile(profile)
@@ -295,40 +501,51 @@ module Cupertino
       end
 
       def add_app_id(app_id)
-        get("https://developer.apple.com/account/ios/identifiers/bundle/bundleCreate.action")
+        get('https://developer.apple.com/account/ios/identifiers/bundle/bundleList.action')
 
-        form = page.form_with(:name => 'bundleSave') or raise UnexpectedContentError
+        regex = /bundleDataURL = "([^"]*)"/
+        bundle_data_url = (page.body.match regex or raise UnexpectedContentError)[1]
+
+        post(bundle_data_url)
+        @csrf_headers = {
+          'csrf' => page.response['csrf'],
+          'csrf_ts' => page.response['csrf_ts']
+        }
+
+        get("https://developer.apple.com/account/ios/identifiers/bundle/bundleCreate.action")
+        form = page.form_with(name: 'bundleSave') or raise UnexpectedContentError
         form.method = 'POST'
         form.action = "https://developer.apple.com/account/ios/identifiers/bundle/bundleConfirm.action"
-        form.field_with(:name => "appIdName").value = app_id.description
-        form.field_with(:name => "explicitIdentifier").value = app_id.identifier
-        form.checkbox_with(:name => "push").check()
         form.add_field!("appIdentifierString", app_id.identifier)
+        form.field_with(name: "appIdName").value = app_id.description
+        form.add_field!("type", "explicit")
+        form.field_with(name: "explicitIdentifier").value = app_id.identifier
+        form.checkbox_with(name: "push").check
+        adssuv = cookies.find{|cookie| cookie.name == 'adssuv'}
+        form.add_field!("adssuv-value", Mechanize::Util::uri_unescape(adssuv.value))
         form.add_field!("formID", "#{rand(10000000)}")
         form.add_field!("clientToken", "undefined")
         form.submit
 
-        if form = page.form_with(:name => 'bundleSubmit')
-          form.method = 'POST'
-
-          adssuv = cookies.find{|cookie| cookie.name == 'adssuv'}
-          form.add_field!("adssuv-value", Mechanize::Util::uri_unescape(adssuv.value))
-
-          form.add_field!("inAppPurchase", "on")
-          form.add_field!("gameCenter", "on")
-          form.add_field!("push", "on")
-
-          form.add_field!("explicitIdentifier", app_id.identifier)
-          form.add_field!("appIdentifierString", app_id.identifier)
-          form.add_field!("appIdName", app_id.description)
-          form.add_field!("type", "explicit")
-
-          form.submit
-        elsif form = page.form_with(:name => 'bundleSave')
-          form.submit
-        else
-          raise UnexpectedContentError
+        form = page.form_with(name: 'bundleSubmit') or raise UnexpectedContentError
+        form.method = 'POST'
+        adssuv = cookies.find{|cookie| cookie.name == 'adssuv'}
+        form.add_field!("adssuv-value", Mechanize::Util::uri_unescape(adssuv.value))
+        form.add_field!("push", "on")
+        form.add_field!("inAppPurchase", "on")
+        form.add_field!("gameCenter", "on")
+        form.add_field!("explicitIdentifier", app_id.identifier)
+        form.add_field!("type", "explicit")
+        form.add_field!("appIdName", app_id.description)
+        form.add_field!("appIdentifierString", app_id.identifier)
+        form.add_field!("formID", "#{rand(100000000)}")
+        form.add_field!("clientToken", "undefined")
+        form.submit(nil, @csrf_headers)
+        if page.body.match /is already in use on your team./
+          raise UnexpectedContentError.new 'This App ID is already in use'
         end
+        (page.body.match /appIdId/ or raise UnexpectedContentError)[1]
+        return JSON.parse(page.body)['appId']
       end
 
       def list_app_ids

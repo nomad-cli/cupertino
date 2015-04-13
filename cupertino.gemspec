@@ -15,12 +15,13 @@ Gem::Specification.new do |s|
   s.description = "A command-line interface for the iOS Provisioning Portal"
 
   s.add_dependency "commander", "~> 4.3"
+  s.add_dependency "highline", ">= 1.7.1"
   s.add_dependency "terminal-table", "~> 1.4.5"
   s.add_dependency "term-ansicolor", "~> 1.0.7"
   s.add_dependency "mechanize", "~> 2.5.1"
   s.add_dependency "nokogiri", "~> 1.6.3"
   s.add_dependency "security", "~> 0.1.2"
-  s.add_dependency "certified", ">= 0.1.0"
+  s.add_dependency "certified", "~> 1.0.0"
 
   s.add_development_dependency "rspec"
   s.add_development_dependency "rake"

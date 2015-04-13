@@ -39,12 +39,9 @@ module Cupertino
       end
 
       def get(uri, parameters = [], referer = nil, headers = {})
-      	#say_ok  "get"
         uri = ::File.join("https://#{Cupertino::ProvisioningPortal::HOST}", uri) unless /^https?/ === uri
-      	#say_ok  uri
 
         3.times do
-      	#say_ok  "get 3.times"
           super(uri, parameters, referer, headers)
 
           return page unless page.respond_to?(:title)
@@ -84,6 +81,7 @@ module Cupertino
         certificate_statuses = (page.body.match regex or raise UnexpectedContentError)[1]
 
         certificate_data_url += certificate_request_types + certificate_statuses
+        certificate_data_url += "&pageSize=50&pageNumber=1&sort=name=asc"
 
         post(certificate_data_url)
         certificate_data = page.content
@@ -104,8 +102,7 @@ module Cupertino
       end
 
       def download_certificate(certificate)
-       	#say_ok  "download_certificate"
-       list_certificates(certificate.type)
+        list_certificates(certificate.type)
 
         self.pluggable_parser.default = Mechanize::Download
         download = post(certificate.download_url)
@@ -114,11 +111,11 @@ module Cupertino
       end
 
       def list_devices
-        #say_ok  "list_devices"
-       get('https://developer.apple.com/account/ios/device/deviceList.action')
+        get('https://developer.apple.com/account/ios/device/deviceList.action')
 
         regex = /deviceDataURL = "([^"]*)"/
         device_data_url = (page.body.match regex or raise UnexpectedContentError)[1]
+        device_data_url += "&pageSize=50&pageNumber=1&sort=name=asc"
 
         post(device_data_url)
 
@@ -139,7 +136,6 @@ module Cupertino
       end
 
       def add_devices(*devices)
-        #say_ok  "add_devices"
         return if devices.empty?
 
         get('https://developer.apple.com/account/ios/device/deviceCreate.action')
@@ -176,7 +172,6 @@ module Cupertino
       end
 
       def list_profiles(type = :development)
-        #say_ok  "list_profiles"
         url = case type
               when :development
                 'https://developer.apple.com/account/ios/profile/profileList.action?type=limited'
@@ -198,6 +193,8 @@ module Cupertino
                             when :distribution
                               '&type=production'
                             end
+                            
+        profile_data_url += "&pageSize=50&pageNumber=1&sort=name=asc"
 
         post(profile_data_url)
         @profile_csrf_headers = {
@@ -230,17 +227,13 @@ module Cupertino
       end
 
       def download_profile(profile)
-        #say_ok  "download_profile"
         self.pluggable_parser.default = Mechanize::Download
         download = get(profile.download_url)
- 		system ("if [ -f ~/" + download.filename + " ];then rm ~/" + download.filename + ";fi")
-		#print "The FILE is " + download.filename + "\n"
         download.save
         download.filename
       end
 
       def manage_devices_for_profile(profile)
-        #say_ok  "manage_devices_for_profile"
         raise ArgumentError unless block_given?
 
         devices = list_devices
@@ -248,7 +241,7 @@ module Cupertino
         begin
           get(profile.edit_url)
         rescue Mechanize::ResponseCodeError
-          say_error "1 Cannot manage devices for #{profile}" and abort
+          say_error "Cannot manage devices for #{profile}" and abort
         end
 
         on, off = [], []
@@ -282,13 +275,12 @@ module Cupertino
       end
 
       def list_devices_for_profile(profile)
-        #say_ok  "list_devices_for_profile"
         devices = list_devices
 
         begin
           get(profile.edit_url)
         rescue Mechanize::ResponseCodeError
-          say_error "2 Cannot manage devices for #{profile}" and abort
+          say_error "Cannot manage devices for #{profile}" and abort
         end
 
         on, off = [], []
@@ -307,7 +299,6 @@ module Cupertino
       end
 
       def add_app_id(app_id)
-        #say_ok  "add_app_id"
         get("https://developer.apple.com/account/ios/identifiers/bundle/bundleCreate.action")
 
         form = page.form_with(:name => 'bundleSave') or raise UnexpectedContentError
@@ -345,11 +336,11 @@ module Cupertino
       end
 
       def list_app_ids
-        #say_ok  "list_app_ids"
         get('https://developer.apple.com/account/ios/identifiers/bundle/bundleList.action')
 
         regex = /bundleDataURL = "([^"]*)"/
         bundle_data_url = (page.body.match regex or raise UnexpectedContentError)[1]
+        bundle_data_url += "&pageSize=50&pageNumber=1&sort=name=asc"
 
         post(bundle_data_url)
         bundle_data = page.content
@@ -384,7 +375,6 @@ module Cupertino
       private
 
       def login!
-        #say_ok  "login"
         if form = page.forms.first
           form.fields_with(type: 'text').first.value = self.username
           form.fields_with(type: 'password').first.value = self.password
@@ -394,7 +384,6 @@ module Cupertino
       end
 
       def select_team!
-        #say_ok  "select_team"
         if form = page.form_with(:name => 'saveTeamSelection')
           team_option = form.radiobutton_with(:value => self.team_id)
           team_option.check

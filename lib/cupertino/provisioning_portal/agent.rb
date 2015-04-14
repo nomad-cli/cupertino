@@ -81,22 +81,31 @@ module Cupertino
         certificate_statuses = (page.body.match regex or raise UnexpectedContentError)[1]
 
         certificate_data_url += certificate_request_types + certificate_statuses
-        certificate_data_url += "&pageSize=50&pageNumber=1&sort=name=asc"
 
-        post(certificate_data_url)
-        certificate_data = page.content
-        parsed_certificate_data = JSON.parse(certificate_data)
+        pageNum = 1
+        pageSize = 50
 
         certificates = []
-        parsed_certificate_data['certRequests'].each do |row|
-          certificate = Certificate.new
-          certificate.name = row['name']
-          certificate.type = type
-          certificate.download_url = "https://developer.apple.com/account/ios/certificate/certificateContentDownload.action?displayId=#{row['certificateId']}&type=#{row['certificateTypeDisplayId']}"
-          certificate.expiration = (Date.parse(row['expirationDateString']) rescue nil)
-          certificate.status = row['statusString']
-          certificates << certificate
-        end
+        begin
+          cert_post_url = certificate_data_url + "&pageSize=#{pageSize}&pageNumber=#{pageNum}&sort=name=asc"
+          post(cert_post_url)
+
+          certificate_data = page.content
+          parsed_certificate_data = JSON.parse(certificate_data)
+
+          parsed_certificate_data['certRequests'].each do |row|
+            certificate = Certificate.new
+            certificate.name = row['name']
+            certificate.type = type
+            certificate.download_url = "https://developer.apple.com/account/ios/certificate/certificateContentDownload.action?displayId=#{row['certificateId']}&type=#{row['certificateTypeDisplayId']}"
+            certificate.expiration = (Date.parse(row['expirationDateString']) rescue nil)
+            certificate.status = row['statusString']
+            certificates << certificate
+          end
+
+          pageNum += 1
+
+        end while parsed_certificate_data['certRequests'].length == pageSize
 
         certificates
       end
@@ -115,22 +124,30 @@ module Cupertino
 
         regex = /deviceDataURL = "([^"]*)"/
         device_data_url = (page.body.match regex or raise UnexpectedContentError)[1]
-        device_data_url += "&pageSize=50&pageNumber=1&sort=name=asc"
 
-        post(device_data_url)
-
-        device_data = page.content
-        parsed_device_data = JSON.parse(device_data)
+        pageNum = 1
+        pageSize = 50
 
         devices = []
-        parsed_device_data['devices'].each do |row|
-          device = Device.new
-          device.name = row['name']
-          device.enabled = (row['status'] == 'c' ? 'Y' : 'N')
-          device.device_id = row['deviceId']
-          device.udid = row['deviceNumber']
-          devices << device
-        end
+        begin
+          device_post_url = device_data_url + "&pageSize=#{pageSize}&pageNumber=#{pageNum}&sort=name=asc"
+          post(device_post_url)
+
+          device_data = page.content
+          parsed_device_data = JSON.parse(device_data)
+
+          parsed_device_data['devices'].each do |row|
+            device = Device.new
+            device.name = row['name']
+            device.enabled = (row['status'] == 'c' ? 'Y' : 'N')
+            device.device_id = row['deviceId']
+            device.udid = row['deviceNumber']
+            devices << device
+          end
+
+          pageNum += 1
+
+        end while parsed_device_data['devices'].length == pageSize
 
         devices
       end
@@ -193,35 +210,41 @@ module Cupertino
                             when :distribution
                               '&type=production'
                             end
-
-        profile_data_url += "&pageSize=50&pageNumber=1&sort=name=asc"
-
-        post(profile_data_url)
-        @profile_csrf_headers = {
-          'csrf' => page.response['csrf'],
-          'csrf_ts' => page.response['csrf_ts']
-        }
-
-        @profile_csrf_headers = {
-          'csrf' => page.response['csrf'],
-          'csrf_ts' => page.response['csrf_ts']
-        }
-
-        profile_data = page.content
-        parsed_profile_data = JSON.parse(profile_data)
+        pageNum = 1
+        pageSize = 50
 
         profiles = []
-        parsed_profile_data['provisioningProfiles'].each do |row|
-          profile = ProvisioningProfile.new
-          profile.name = row['name']
-          profile.type = type
-          profile.status = row['status']
-          profile.expiration = (Time.parse(row['dateExpire']) rescue nil)
-          profile.download_url = "https://developer.apple.com/account/ios/profile/profileContentDownload.action?displayId=#{row['provisioningProfileId']}"
-          profile.edit_url = "https://developer.apple.com/account/ios/profile/profileEdit.action?provisioningProfileId=#{row['provisioningProfileId']}"
-          profile.identifier = row['UUID']
-          profiles << profile
-        end
+        begin
+          profile_post_url = profile_data_url + "&pageSize=#{pageSize}&pageNumber=#{pageNum}&sort=name=asc"
+          post(profile_post_url)
+          @profile_csrf_headers = {
+            'csrf' => page.response['csrf'],
+            'csrf_ts' => page.response['csrf_ts']
+          }
+
+          @profile_csrf_headers = {
+            'csrf' => page.response['csrf'],
+            'csrf_ts' => page.response['csrf_ts']
+          }
+
+          profile_data = page.content
+          parsed_profile_data = JSON.parse(profile_data)
+
+          parsed_profile_data['provisioningProfiles'].each do |row|
+            profile = ProvisioningProfile.new
+            profile.name = row['name']
+            profile.type = type
+            profile.status = row['status']
+            profile.expiration = (Time.parse(row['dateExpire']) rescue nil)
+            profile.download_url = "https://developer.apple.com/account/ios/profile/profileContentDownload.action?displayId=#{row['provisioningProfileId']}"
+            profile.edit_url = "https://developer.apple.com/account/ios/profile/profileEdit.action?provisioningProfileId=#{row['provisioningProfileId']}"
+            profile.identifier = row['UUID']
+            profiles << profile
+          end
+
+          pageNum += 1
+
+        end while parsed_profile_data['provisioningProfiles'].length == pageSize
 
         profiles
       end
@@ -340,34 +363,43 @@ module Cupertino
 
         regex = /bundleDataURL = "([^"]*)"/
         bundle_data_url = (page.body.match regex or raise UnexpectedContentError)[1]
-        bundle_data_url += "&pageSize=50&pageNumber=1&sort=name=asc"
 
-        post(bundle_data_url)
-        bundle_data = page.content
-        parsed_bundle_data = JSON.parse(bundle_data)
+        pageNum = 1
+        pageSize = 50
 
         app_ids = []
-        parsed_bundle_data['appIds'].each do |row|
-          app_id = AppID.new
-          app_id.bundle_seed_id = [row['prefix'], row['identifier']].join(".")
-          app_id.description = row['name']
-          app_id.identifier = row['identifier']
+        begin
+          bundle_post_url = bundle_data_url + "&pageSize=#{pageSize}&pageNumber=#{pageNum}&sort=name=asc"
+          post(bundle_post_url)
 
-          app_id.development_properties, app_id.distribution_properties = [], []
-          row['features'].each do |feature, value|
-            if value == true
-              app_id.development_properties << feature
-            elsif value.kind_of?(String) && !value.empty?
-              app_id.development_properties << "#{feature}: #{value}"
+          bundle_data = page.content
+          parsed_bundle_data = JSON.parse(bundle_data)
+
+          parsed_bundle_data['appIds'].each do |row|
+            app_id = AppID.new
+            app_id.bundle_seed_id = [row['prefix'], row['identifier']].join(".")
+            app_id.description = row['name']
+            app_id.identifier = row['identifier']
+
+            app_id.development_properties, app_id.distribution_properties = [], []
+            row['features'].each do |feature, value|
+              if value == true
+                app_id.development_properties << feature
+              elsif value.kind_of?(String) && !value.empty?
+                app_id.development_properties << "#{feature}: #{value}"
+              end
             end
+
+            row['enabledFeatures'].each do |feature|
+              app_id.distribution_properties << feature
+            end
+
+            app_ids << app_id
           end
 
-          row['enabledFeatures'].each do |feature|
-            app_id.distribution_properties << feature
-          end
+          pageNum += 1
 
-          app_ids << app_id
-        end
+        end while parsed_bundle_data['appIds'].length == pageSize
 
         app_ids
       end

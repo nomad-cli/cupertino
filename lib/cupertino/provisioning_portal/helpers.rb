@@ -23,6 +23,10 @@ module Cupertino
               @password ||= pw "Password:"
             end
 
+            def pagesize
+              @pagesize ||= '50'
+            end
+
             def team_id
               unless @team_id
                 teams = []

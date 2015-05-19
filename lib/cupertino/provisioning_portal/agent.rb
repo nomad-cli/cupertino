@@ -115,7 +115,7 @@ module Cupertino
 
         regex = /deviceDataURL = "([^"]*)"/
         device_data_url = (page.body.match regex or raise UnexpectedContentError)[1]
-        device_data_url += "&pageSize=50&pageNumber=1&sort=name=asc"
+        device_data_url += "&pageSize=500&pageNumber=1&sort=name=asc"
 
         post(device_data_url)
 
@@ -194,7 +194,7 @@ module Cupertino
                               '&type=production'
                             end
 
-        profile_data_url += "&pageSize=50&pageNumber=1&sort=name=asc"
+        profile_data_url += "&pageSize=500&pageNumber=1&sort=name=asc"
 
         post(profile_data_url)
         @profile_csrf_headers = {

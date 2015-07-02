@@ -165,6 +165,21 @@ The following commands will format their output as [comma-separated values](http
 - `certificates:download`
 - `app_ids:list`
 
+## Options
+
+Global options:
+
+- `-u` : Username
+- `-p` : Password
+- `--team` : Team Identifier
+- `--info` : Set log level to INFO
+- `--debug` : Set log level to DEBUG
+- `--format` : Output options are `table` or `csv` 
+
+Specific options for certain commands:
+
+- `--type` : Options are `development` or `distribution`
+
 ## Proxies
 
 Cupertino will access the provisioning portal through a proxy if the `HTTP_PROXY` environment variable is set, with optional credentials `HTTP_PROXY_USER` and `HTTP_PROXY_PASSWORD`.

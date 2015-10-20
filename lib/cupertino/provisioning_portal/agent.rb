@@ -59,7 +59,7 @@ module Cupertino
         raise UnsuccessfulAuthenticationError
       end
 
-      def list_certificates(type = :development)
+      def list_certificates(type = :development, search_term = nil)
         url = case type
               when :development
                 "https://developer.apple.com/account/ios/certificate/certificateList.action?type=development"
@@ -82,6 +82,11 @@ module Cupertino
 
         certificate_data_url += certificate_request_types + certificate_statuses
         certificate_data_url += "&pageSize=50&pageNumber=1&sort=name=asc"
+
+        if search_term
+          search_query          = URI.escape("name=#{search_term}&typeString=#{search_term}&expirationDateString=#{search_term}&certRequestStatusCode=#{search_term}",'&= ')
+          certificate_data_url += "&search=" + search_query
+        end
 
         post(certificate_data_url)
         certificate_data = page.content

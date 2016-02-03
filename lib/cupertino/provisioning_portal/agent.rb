@@ -27,15 +27,21 @@ module Cupertino
           set_proxy(uri.host, uri.port, user || uri.user, password || uri.password)
         end
 
-        pw = Security::InternetPassword.find(:server => Cupertino::ProvisioningPortal::HOST)
-        @username, @password = pw.attributes['acct'], pw.password if pw
+        if ENV['IOS_USERNAME'] and ENV['IOS_PASSWORD']
+          @username, @password = ENV['IOS_USERNAME'], ENV['IOS_PASSWORD']
+        else
+          pw = Security::InternetPassword.find(:server => Cupertino::ProvisioningPortal::HOST)
+          @username, @password = pw.attributes['acct'], pw.password if pw
+        end
       end
 
       def username=(value)
         @username = value
 
-        pw = Security::InternetPassword.find(:a => self.username, :server => Cupertino::ProvisioningPortal::HOST)
-        @password = pw.password if pw
+        if not(@password and ENV['IOS_PASSWORD'])
+          pw = Security::InternetPassword.find(:a => self.username, :server => Cupertino::ProvisioningPortal::HOST)
+          @password = pw.password if pw
+        end
       end
 
       def get(uri, parameters = [], referer = nil, headers = {})

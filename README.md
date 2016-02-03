@@ -29,6 +29,9 @@ $ ios login
 
 _Credentials are saved in the Keychain. You will not be prompted for your username or password by commands while you are logged in. (Mac only)_
 
+Alternatively, username and password can also be provided by setting the
+`IOS_USERNAME` and `IOS_PASSWORD` environment variables respectively.
+
 ### Devices
 
 ```

@@ -1,6 +1,6 @@
 ![Cupertino](https://raw.github.com/nomad/nomad.github.io/assets/cupertino-banner.png)
 
-**Note:** Cupertino stopped working due to a recent change on the Apple Developer Portal. A maintained alternative is to use [spaceship](https://spaceship.airforce) to communicate with Apple's Developer back-end, or use any of the [fastlane tools](https://fastlane.tools), like [match](https://github.com/fastlane/match) or [sigh](https://github.com/fastlane/sigh).
+**Note:** Cupertino stopped working due to a recent change on the Apple Developer Portal. A maintained alternative is to use [spaceship](https://spaceship.airforce) to communicate with Apple's Developer back-end, or use any of the [fastlane tools](https://fastlane.tools), like [match](https://github.com/fastlane/fastlane/tree/master/match) or [sigh](https://github.com/fastlane/fastlane/tree/master/sigh).
 
 ------
 

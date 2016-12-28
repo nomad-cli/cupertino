@@ -1,10 +1,10 @@
 command :'certificates:list' do |c|
-  c.syntax = 'ios certificates:list [development|distribution]'
-  c.summary = 'Lists the Certificates'
+  c.syntax = 'ios certificates:list [development|distribution] [query]'
+  c.summary = 'Lists the Certificates. Specify a query to narrow down the search'
 
   c.action do |args, options|
-    type = args.first.downcase.to_sym rescue nil
-    certificates = try{agent.list_certificates(type ||= :development)}
+    type = args.shift.downcase.to_sym rescue nil
+    certificates = try{agent.list_certificates(type ||= :development, args.shift)}
 
     say_warning "No #{type} certificates found." and abort if certificates.empty?
 

@@ -5,11 +5,11 @@ COLORS_BY_PROPERTY_VALUES = {
 }
 
 command :'app_ids:list' do |c|
-  c.syntax = 'ios app_ids:list'
-  c.summary = 'Lists the App IDs'
+  c.syntax = 'ios app_ids:list [query]'
+  c.summary = 'Lists the App IDs. Specify a query if to narrow the search.'
 
   c.action do |args, options|
-    app_ids = try{agent.list_app_ids}
+    app_ids = try{agent.list_app_ids(args.shift)}
 
     say_warning "No App IDs found" and abort if app_ids.empty?
 

@@ -65,7 +65,7 @@ module Cupertino
         raise UnsuccessfulAuthenticationError
       end
 
-      def list_certificates(type = :development)
+      def list_certificates(type = :development, search_term = nil)
         url = case type
               when :development
                 "https://developer.apple.com/account/ios/certificate/certificateList.action?type=development"
@@ -88,6 +88,11 @@ module Cupertino
 
         certificate_data_url += certificate_request_types + certificate_statuses
         certificate_data_url += "&pageSize=50&pageNumber=1&sort=name=asc"
+
+        if search_term
+          search_query          = URI.escape("name=#{search_term}&typeString=#{search_term}&expirationDateString=#{search_term}&certRequestStatusCode=#{search_term}",'&= ')
+          certificate_data_url += "&search=" + search_query
+        end
 
         post(certificate_data_url)
         certificate_data = page.content
@@ -177,7 +182,7 @@ module Cupertino
         end
       end
 
-      def list_profiles(type = :development)
+      def list_profiles(type = :development, search_term = nil)
         url = case type
               when :development
                 'https://developer.apple.com/account/ios/profile/profileList.action?type=limited'
@@ -201,6 +206,11 @@ module Cupertino
                             end
 
         profile_data_url += "&pageSize=500&pageNumber=1&sort=name=asc"
+
+        if search_term
+          search_query      = URI.escape("name=#{search_term}&type=#{search_term}&status=#{search_term}&appId=#{search_term}",'&= ')
+          profile_data_url += "&search=" + search_query
+        end
 
         post(profile_data_url)
         @profile_csrf_headers = {
@@ -341,12 +351,17 @@ module Cupertino
         end
       end
 
-      def list_app_ids
+      def list_app_ids(search_term = nil)
         get('https://developer.apple.com/account/ios/identifiers/bundle/bundleList.action')
 
         regex = /bundleDataURL = "([^"]*)"/
         bundle_data_url = (page.body.match regex or raise UnexpectedContentError)[1]
         bundle_data_url += "&pageSize=50&pageNumber=1&sort=name=asc"
+
+        if search_term
+          search_query     = URI.escape("name=#{search_term}&prefix=#{search_term}&identifier=#{search_term}",'&= ')
+          bundle_data_url += "&search=" + search_query
+        end
 
         post(bundle_data_url)
         bundle_data = page.content

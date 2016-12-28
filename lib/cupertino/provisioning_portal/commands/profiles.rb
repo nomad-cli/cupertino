@@ -1,12 +1,12 @@
 command :'profiles:list' do |c|
-  c.syntax = 'ios profiles:list'
-  c.summary = 'Lists the Provisioning Profiles'
+  c.syntax = 'ios profiles:list [query]'
+  c.summary = 'Lists the Provisioning Profiles. Specify a query to narrow down search.'
 
-  c.option '--type [TYPE]', [:development, :distribution], "Type of profile (development or distribution; defaults to development)"
+  c.option '--type TYPE', String, "Type of profile (development or distribution; defaults to development)"
 
   c.action do |args, options|
     type = (options.type.downcase.to_sym if options.type) || :development
-    profiles = try{agent.list_profiles(type)}
+    profiles = try{agent.list_profiles(type, args.shift)}
 
     say_warning "No #{type} provisioning profiles found." and abort if profiles.empty?
 

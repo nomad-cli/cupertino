@@ -191,10 +191,6 @@ Specific options for certain commands:
 
 Cupertino will access the provisioning portal through a proxy if the `HTTP_PROXY` environment variable is set, with optional credentials `HTTP_PROXY_USER` and `HTTP_PROXY_PASSWORD`.
 
-## Creator
-
-Mattt Thompson ([@mattt](https://twitter.com/mattt))
-
 ## License
 
 Cupertino is released under an MIT license. See LICENSE for more information.
